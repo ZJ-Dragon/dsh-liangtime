@@ -205,14 +205,14 @@ window.__ModuleLoader__.load({
     }
 
     const CSS = `
-.lt-badge{display:inline-flex;align-items:center;gap:6px;min-width:0;color:inherit;font:inherit;font-size:12px;font-weight:550;line-height:1;white-space:nowrap;user-select:none}
+.lt-badge{position:relative;display:inline-flex;align-items:center;gap:6px;min-width:0;color:inherit;font:inherit;font-size:12px;font-weight:550;line-height:1;white-space:nowrap;user-select:none}
 .lt-badge--sidebar{box-sizing:border-box;width:100%;min-height:32px;padding:6px 10px;border-radius:7px}
 .lt-badge--sidebar.lt-badge--rail{width:36px;min-height:36px;padding:0;justify-content:center;border-radius:7px}
-.lt-badge--titlebar{box-sizing:border-box;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;transition:max-width .16s ease}
-.lt-badge__text{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.lt-badge--titlebar .lt-badge__text{max-width:200px;transition:max-width .16s ease}
+.lt-badge--titlebar{box-sizing:border-box;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;transition:max-width .22s cubic-bezier(.22,1,.36,1)}
+.lt-badge__text{min-width:0;overflow:hidden;text-overflow:ellipsis;transition:width .22s cubic-bezier(.22,1,.36,1)}
+.lt-badge--titlebar .lt-badge__text{max-width:320px}
 .lt-badge--titlebar.lt-badge--hovered{max-width:360px}
-.lt-badge--titlebar.lt-badge--hovered .lt-badge__text{max-width:320px}
+.lt-badge__sizer{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:max-content;max-width:none;font:inherit;font-size:12px;font-weight:550;line-height:1}
 .lt-badge--hovered .lt-badge__text{animation:lt-hover-in .14s ease}
 .lt-badge--rail .lt-badge__text{display:none}
 @keyframes lt-hover-in{from{opacity:.55}to{opacity:1}}
@@ -318,7 +318,7 @@ window.__ModuleLoader__.load({
 .lt-error-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;font-size:13px;color:var(--dsw-alias-label-primary)}
 @keyframes lt-pulse{0%,100%{opacity:.35}50%{opacity:1}}
 @media (max-width:560px){.lt-grid{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
-@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge--titlebar .lt-badge__text{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
+@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge__text{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
 `
 
     const WEEKDAY_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
@@ -701,6 +701,9 @@ window.__ModuleLoader__.load({
       const t = useT(api)
       const nowMs = useClock(15000)
       const [hovered, setHovered] = React.useState(false)
+      const [textWidth, setTextWidth] = React.useState(null)
+      const sizerRef = React.useRef(null)
+      const hoverTimer = React.useRef(null)
       const snapshot = storeState.snapshot
       React.useEffect(() => {
         const phase = snapshot?.sync?.phase
@@ -726,6 +729,13 @@ window.__ModuleLoader__.load({
         }, 60000)
         return () => window.clearInterval(timer)
       }, [api])
+      React.useLayoutEffect(() => {
+        const width = sizerRef.current === null ? 0 : sizerRef.current.offsetWidth
+        setTextWidth(previous => previous === width ? previous : width)
+      })
+      React.useEffect(() => () => {
+        if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current)
+      }, [])
       if (!snapshot) return null
       if (snapshot.config.position !== variant) return null
       const peak = computePeak(snapshot, new Date(nowMs))
@@ -742,6 +752,27 @@ window.__ModuleLoader__.load({
         rail ? 'lt-badge--rail' : '',
         hovered ? 'lt-badge--hovered' : '',
       ].filter(Boolean).join(' ')
+      const clearHoverTimer = () => {
+        if (hoverTimer.current !== null) {
+          window.clearTimeout(hoverTimer.current)
+          hoverTimer.current = null
+        }
+      }
+      const startHover = () => {
+        clearHoverTimer()
+        hoverTimer.current = window.setTimeout(() => {
+          hoverTimer.current = null
+          setHovered(true)
+        }, 500)
+      }
+      const endHover = () => {
+        clearHoverTimer()
+        setHovered(false)
+      }
+      const focusHover = () => {
+        clearHoverTimer()
+        setHovered(true)
+      }
       return h(React.Fragment, null,
         h('style', { key: 'lt-style' }, CSS),
         h('div', {
@@ -752,15 +783,21 @@ window.__ModuleLoader__.load({
           'aria-label': hovered && countdown ? `${aria} · ${countdown}` : aria,
           title: rail && countdown ? `${aria} · ${countdown}` : undefined,
           tabIndex: 0,
-          onMouseEnter: () => setHovered(true),
-          onMouseLeave: () => setHovered(false),
-          onFocus: () => setHovered(true),
-          onBlur: () => setHovered(false),
+          onMouseEnter: startHover,
+          onMouseLeave: endHover,
+          onFocus: focusHover,
+          onBlur: endHover,
           'data-liangtime-badge': variant,
           'data-liangtime-state': peak ? 'peak' : 'low',
           'data-liangtime-expanded': hovered ? 'true' : undefined,
-        }, h(TrendIcon, { up: peak }), text
-          ? h('span', { className: 'lt-badge__text' }, text)
+        },
+        h(TrendIcon, { up: peak }),
+        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: sizerRef }, text),
+        text
+          ? h('span', {
+              className: 'lt-badge__text',
+              style: textWidth === null ? undefined : { width: `${textWidth}px` },
+            }, text)
           : null))
     }
 
