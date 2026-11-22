@@ -701,9 +701,11 @@ window.__ModuleLoader__.load({
       const t = useT(api)
       const nowMs = useClock(15000)
       const [hovered, setHovered] = React.useState(false)
+      const [showCountdown, setShowCountdown] = React.useState(false)
       const [textWidth, setTextWidth] = React.useState(null)
       const sizerRef = React.useRef(null)
       const hoverTimer = React.useRef(null)
+      const swapTimer = React.useRef(null)
       const snapshot = storeState.snapshot
       React.useEffect(() => {
         const phase = snapshot?.sync?.phase
@@ -735,6 +737,7 @@ window.__ModuleLoader__.load({
       })
       React.useEffect(() => () => {
         if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current)
+        if (swapTimer.current !== null) window.clearTimeout(swapTimer.current)
       }, [])
       if (!snapshot) return null
       if (snapshot.config.position !== variant) return null
@@ -742,8 +745,14 @@ window.__ModuleLoader__.load({
       const rail = variant === 'sidebar' && wide === false
       const baseText = peak ? snapshot.config.highText : snapshot.config.lowText
       const fallbackText = t(peak ? 'peak' : 'low')
-      const countdown = (hovered || rail) ? countdownLabel(snapshot, t, nowMs) : null
-      const text = hovered && countdown ? countdown : baseText
+      const countdown = (hovered || showCountdown || rail) ? countdownLabel(snapshot, t, nowMs) : null
+      // `layoutText` drives the measured target width; `text` is what stays
+      // visible while the width animates back, so the old label cannot flash
+      // in before the collapse finishes.
+      const layoutText = hovered ? (countdown || baseText) : baseText
+      const text = hovered
+        ? (countdown || baseText)
+        : (showCountdown && countdown ? countdown : baseText)
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
       const classes = [
@@ -758,19 +767,40 @@ window.__ModuleLoader__.load({
           hoverTimer.current = null
         }
       }
+      const clearSwapTimer = () => {
+        if (swapTimer.current !== null) {
+          window.clearTimeout(swapTimer.current)
+          swapTimer.current = null
+        }
+      }
       const startHover = () => {
         clearHoverTimer()
+        clearSwapTimer()
         hoverTimer.current = window.setTimeout(() => {
           hoverTimer.current = null
+          setShowCountdown(true)
           setHovered(true)
         }, 500)
       }
       const endHover = () => {
         clearHoverTimer()
+        if (!hovered) {
+          clearSwapTimer()
+          setShowCountdown(false)
+          return
+        }
         setHovered(false)
+        clearSwapTimer()
+        const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
+        swapTimer.current = window.setTimeout(() => {
+          swapTimer.current = null
+          setShowCountdown(false)
+        }, reduced ? 0 : 240)
       }
       const focusHover = () => {
         clearHoverTimer()
+        clearSwapTimer()
+        setShowCountdown(true)
         setHovered(true)
       }
       return h(React.Fragment, null,
@@ -780,7 +810,7 @@ window.__ModuleLoader__.load({
           style: { color },
           role: 'status',
           'aria-live': 'polite',
-          'aria-label': hovered && countdown ? `${aria} · ${countdown}` : aria,
+          'aria-label': (hovered || showCountdown) && countdown ? `${aria} · ${countdown}` : aria,
           title: rail && countdown ? `${aria} · ${countdown}` : undefined,
           tabIndex: 0,
           onMouseEnter: startHover,
@@ -792,7 +822,7 @@ window.__ModuleLoader__.load({
           'data-liangtime-expanded': hovered ? 'true' : undefined,
         },
         h(TrendIcon, { up: peak }),
-        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: sizerRef }, text),
+        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: sizerRef }, layoutText),
         text
           ? h('span', {
               className: 'lt-badge__text',
