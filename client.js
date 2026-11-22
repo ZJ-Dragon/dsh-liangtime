@@ -932,8 +932,11 @@ window.__ModuleLoader__.load({
       const nowMs = useClock(15000)
       const [hovered, setHovered] = React.useState(false)
       const [showCountdown, setShowCountdown] = React.useState(false)
-      const [textWidth, setTextWidth] = React.useState(null)
-      const sizerRef = React.useRef(null)
+      const [targetWidth, setTargetWidth] = React.useState(null)
+      const baseSizerRef = React.useRef(null)
+      const countdownSizerRef = React.useRef(null)
+      const baseWidthRef = React.useRef(0)
+      const countdownWidthRef = React.useRef(0)
       const hoverTimer = React.useRef(null)
       const swapTimer = React.useRef(null)
       const snapshot = storeState.snapshot
@@ -964,8 +967,14 @@ window.__ModuleLoader__.load({
         return () => window.clearInterval(timer)
       }, [api])
       React.useLayoutEffect(() => {
-        const width = sizerRef.current === null ? 0 : sizerRef.current.offsetWidth
-        setTextWidth(previous => previous === width ? previous : width)
+        const baseWidth = baseSizerRef.current === null ? 0 : baseSizerRef.current.offsetWidth
+        const countdownWidth = countdownSizerRef.current === null ? baseWidth : countdownSizerRef.current.offsetWidth
+        baseWidthRef.current = baseWidth
+        countdownWidthRef.current = countdownWidth
+        const target = hovered ? countdownWidth : baseWidth
+        if (hovered || !showCountdown) {
+          setTargetWidth(previous => previous === target ? previous : target)
+        }
       })
       React.useEffect(() => () => {
         if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current)
@@ -977,14 +986,12 @@ window.__ModuleLoader__.load({
       const rail = variant === 'sidebar' && wide === false
       const baseText = peak ? snapshot.config.highText : snapshot.config.lowText
       const fallbackText = t(peak ? 'peak' : 'low')
-      const countdown = (hovered || showCountdown || rail) ? countdownLabel(snapshot, t, nowMs) : null
-      // `layoutText` drives the measured target width; `text` is what stays
-      // visible while the width animates back, so the old label cannot flash
-      // in before the collapse finishes.
-      const layoutText = hovered ? (countdown || baseText) : baseText
-      const text = hovered
-        ? (countdown || baseText)
-        : (showCountdown && countdown ? countdown : baseText)
+      const countdown = countdownLabel(snapshot, t, nowMs)
+      // Keep the countdown string rendered in a hidden sizer even while the
+      // badge is collapsed, so its width is already known when hover starts.
+      // That lets the content and target width change in one commit instead
+      // of flashing through a clipped intermediate frame.
+      const text = (hovered || showCountdown) ? countdown : baseText
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
       const wrap = variant === 'sidebar' && hovered && !rail
@@ -996,8 +1003,9 @@ window.__ModuleLoader__.load({
         wrap ? 'lt-badge--wrap' : '',
       ].filter(Boolean).join(' ')
       const badgeStyle = { color }
-      if (variant === 'titlebar' && hovered && textWidth !== null && textWidth > 0) {
-        badgeStyle.maxWidth = `${textWidth + 48}px`
+      if (variant === 'titlebar' && (hovered || showCountdown) && targetWidth !== null && targetWidth > 0) {
+        const widest = Math.max(targetWidth, countdownWidthRef.current)
+        badgeStyle.maxWidth = `${widest + 48}px`
       }
       const clearHoverTimer = () => {
         if (hoverTimer.current !== null) {
@@ -1016,6 +1024,7 @@ window.__ModuleLoader__.load({
         clearSwapTimer()
         hoverTimer.current = window.setTimeout(() => {
           hoverTimer.current = null
+          setTargetWidth(countdownSizerRef.current?.offsetWidth || countdownWidthRef.current || null)
           setShowCountdown(true)
           setHovered(true)
         }, 500)
@@ -1028,6 +1037,7 @@ window.__ModuleLoader__.load({
           return
         }
         setHovered(false)
+        setTargetWidth(baseSizerRef.current?.offsetWidth || baseWidthRef.current || null)
         clearSwapTimer()
         const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
         swapTimer.current = window.setTimeout(() => {
@@ -1038,6 +1048,7 @@ window.__ModuleLoader__.load({
       const focusHover = () => {
         clearHoverTimer()
         clearSwapTimer()
+        setTargetWidth(countdownSizerRef.current?.offsetWidth || countdownWidthRef.current || null)
         setShowCountdown(true)
         setHovered(true)
       }
@@ -1060,11 +1071,12 @@ window.__ModuleLoader__.load({
           'data-liangtime-expanded': hovered ? 'true' : undefined,
         },
         badgeIcon(snapshot.config, peak),
-        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: sizerRef }, layoutText),
+        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: baseSizerRef }, baseText),
+        h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: countdownSizerRef }, countdown),
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: wrap || textWidth === null ? undefined : { width: `${textWidth}px` },
+              style: wrap || targetWidth === null || targetWidth <= 0 ? undefined : { width: `${targetWidth}px` },
             }, text)
           : null))
     }
