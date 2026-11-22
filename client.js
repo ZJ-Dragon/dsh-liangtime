@@ -131,6 +131,12 @@ window.__ModuleLoader__.load({
       holidayToday: '今天',
       holidayBadge: '法定节假日',
       holidaySourceLink: '数据来源：中国政府网节假日安排',
+      sidebarLayoutTitle: '侧边栏布局',
+      sidebarLayoutHint: '以下选项只影响侧边栏位置的徽标，不影响标题栏。',
+      widthSyncLabel: '每 30 分钟同步侧边栏宽度',
+      widthSyncHint: '插件启动后立即读取一次，此后每 30 分钟重新测量，用来调整文字显示宽度。',
+      adaptiveWrapLabel: '自适应换行',
+      adaptiveWrapHint: '若换行后末行只剩 1–2 个字符，则在前一行提前 2 个字符换行，避免孤字。',
       iconsTitle: '自定义图标',
       iconsHint: '可选：为高峰、低峰分别导入 SVG。自定义图标按文件自身颜色渲染；徽标文字仍使用设置颜色。',
       highIcon: '高峰图标',
@@ -264,6 +270,12 @@ window.__ModuleLoader__.load({
       holidayToday: 'Today',
       holidayBadge: 'Public holiday',
       holidaySourceLink: 'Source: gov.cn holiday notices',
+      sidebarLayoutTitle: 'Sidebar layout',
+      sidebarLayoutHint: 'These options affect the sidebar badge only, not the titlebar.',
+      widthSyncLabel: 'Sync sidebar width every 30 minutes',
+      widthSyncHint: 'Measures once at startup, then every 30 minutes, and uses the width to adjust the text area.',
+      adaptiveWrapLabel: 'Adaptive wrapping',
+      adaptiveWrapHint: 'If the last wrapped line would contain only 1–2 characters, break 2 characters earlier on the previous line.',
       iconsTitle: 'Custom icons',
       iconsHint: 'Optional: import separate SVGs for peak and off-peak. Custom icons keep their own colors; badge text still follows the color setting.',
       highIcon: 'Peak icon',
@@ -301,7 +313,7 @@ window.__ModuleLoader__.load({
 .lt-badge--titlebar .lt-badge__text{max-width:none;flex:none}
 .lt-badge--titlebar.lt-badge--hovered{max-width:min(1000px,calc(100vw - 120px))}
 .lt-badge--wrap{align-items:flex-start;white-space:normal}
-.lt-badge--wrap .lt-badge__text{flex:0 1 auto;white-space:normal;text-overflow:clip;line-height:1.35;padding-block:1px}
+.lt-badge--wrap .lt-badge__text{flex:0 1 auto;white-space:normal;overflow-wrap:anywhere;text-overflow:clip;line-height:1.35;padding-block:1px}
 .lt-badge--wrap .lt-badge__icon{margin-top:1px}
 .lt-badge__sizer{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:max-content;max-width:none;font:inherit;font-size:12px;font-weight:550;line-height:1}
 .lt-badge--hovered .lt-badge__text{animation:lt-hover-in .14s ease}
@@ -733,6 +745,8 @@ window.__ModuleLoader__.load({
         manualHolidays: [...(snapshot.config.manualHolidays ?? [])],
         highIconSvg: snapshot.config.highIconSvg ?? null,
         lowIconSvg: snapshot.config.lowIconSvg ?? null,
+        sidebarWidthSync: snapshot.config.sidebarWidthSync ?? true,
+        adaptiveWrap: snapshot.config.adaptiveWrap ?? true,
       }
     }
 
@@ -754,6 +768,8 @@ window.__ModuleLoader__.load({
         manualHolidays: draft.manualHolidays,
         highIconSvg: draft.highIconSvg,
         lowIconSvg: draft.lowIconSvg,
+        sidebarWidthSync: draft.sidebarWidthSync,
+        adaptiveWrap: draft.adaptiveWrap,
       })
     }
 
@@ -914,6 +930,44 @@ window.__ModuleLoader__.load({
       }))
     }
 
+    function estimateCharWidth(character, fontSize = 12) {
+      const code = character.codePointAt(0) ?? 0
+      if (code >= 0x2e80) return fontSize
+      if (character === ' ') return fontSize * 0.33
+      if (/[0-9A-Za-z]/.test(character)) return fontSize * 0.56
+      return fontSize * 0.5
+    }
+
+    function balancedTextLines(text, maxWidth, fontSize = 12) {
+      if (maxWidth <= 0 || typeof text !== 'string' || text.length === 0) return [text]
+      const lines = []
+      let current = ''
+      let width = 0
+      for (const character of text) {
+        const characterWidth = estimateCharWidth(character, fontSize)
+        if (current.length > 0 && width + characterWidth > maxWidth) {
+          lines.push(current)
+          current = ''
+          width = 0
+        }
+        current += character
+        width += characterWidth
+      }
+      if (current.length > 0) lines.push(current)
+      if (lines.length > 1) {
+        const last = lines[lines.length - 1]
+        if ([...last].length <= 2) {
+          const previous = [...lines[lines.length - 2]]
+          if (previous.length > 2) {
+            const moved = previous.splice(-2).join('')
+            lines[lines.length - 2] = previous.join('')
+            lines[lines.length - 1] = moved + last
+          }
+        }
+      }
+      return lines
+    }
+
     function badgeIcon(config, peak, className = 'lt-badge__icon lt-badge__custom-icon', size = 14) {
       const source = customIconSource(config, peak)
       if (source === null) return h(TrendIcon, { up: peak, size })
@@ -933,6 +987,8 @@ window.__ModuleLoader__.load({
       const [hovered, setHovered] = React.useState(false)
       const [showCountdown, setShowCountdown] = React.useState(false)
       const [targetWidth, setTargetWidth] = React.useState(null)
+      const [sidebarWidth, setSidebarWidth] = React.useState(0)
+      const badgeRef = React.useRef(null)
       const baseSizerRef = React.useRef(null)
       const countdownSizerRef = React.useRef(null)
       const baseWidthRef = React.useRef(0)
@@ -976,6 +1032,17 @@ window.__ModuleLoader__.load({
           setTargetWidth(previous => previous === target ? previous : target)
         }
       })
+      React.useLayoutEffect(() => {
+        if (variant !== 'sidebar' || wide === false || snapshot?.config.position !== 'sidebar') return undefined
+        const readWidth = () => {
+          const next = badgeRef.current?.offsetWidth ?? 0
+          setSidebarWidth(previous => previous === next ? previous : next)
+        }
+        readWidth()
+        if (!(snapshot?.config.sidebarWidthSync ?? true)) return undefined
+        const timer = window.setInterval(readWidth, 30 * 60 * 1000)
+        return () => window.clearInterval(timer)
+      }, [variant, wide, snapshot?.config.position, snapshot?.config.sidebarWidthSync])
       React.useEffect(() => () => {
         if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current)
         if (swapTimer.current !== null) window.clearTimeout(swapTimer.current)
@@ -992,9 +1059,26 @@ window.__ModuleLoader__.load({
       // That lets the content and target width change in one commit instead
       // of flashing through a clipped intermediate frame.
       const text = (hovered || showCountdown) ? countdown : baseText
+      const sidebarTextWidth = variant === 'sidebar' && sidebarWidth > 0
+        ? Math.max(48, sidebarWidth - 42)
+        : null
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
       const wrap = variant === 'sidebar' && hovered && !rail
+      const displayWidth = variant === 'sidebar'
+        && (snapshot.config.sidebarWidthSync ?? true)
+        && sidebarTextWidth !== null
+        && targetWidth !== null
+        ? Math.min(targetWidth, sidebarTextWidth)
+        : targetWidth
+      const adaptiveLines = wrap
+        && (snapshot.config.adaptiveWrap ?? true)
+        && sidebarTextWidth !== null
+        ? balancedTextLines(text, Math.max(24, sidebarTextWidth - 2))
+        : null
+      const renderedText = adaptiveLines !== null && adaptiveLines.length > 1
+        ? adaptiveLines.flatMap((line, index) => index === 0 ? [line] : [h('br', { key: `lt-br-${index}` }), line])
+        : text
       const classes = [
         'lt-badge',
         `lt-badge--${variant}`,
@@ -1057,6 +1141,7 @@ window.__ModuleLoader__.load({
       return h(React.Fragment, null,
         h('style', { key: 'lt-style' }, CSS),
         h('div', {
+          ref: badgeRef,
           className: classes,
           style: badgeStyle,
           role: 'status',
@@ -1078,8 +1163,8 @@ window.__ModuleLoader__.load({
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: targetWidth === null || targetWidth <= 0 ? undefined : { width: `${targetWidth}px` },
-            }, text)
+              style: displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
+            }, renderedText)
           : null))
     }
 
@@ -1521,6 +1606,21 @@ window.__ModuleLoader__.load({
           : null)
     }
 
+    function ToggleRow({ label, hint, checked, onChange }) {
+      return h('div', { className: 'lt-switch-row' },
+        h('div', { className: 'lt-switch-copy' },
+          h('span', { className: 'lt-switch-label' }, label),
+          h('span', { className: 'lt-switch-hint' }, hint)),
+        h('button', {
+          type: 'button',
+          className: 'lt-switch',
+          role: 'switch',
+          'aria-checked': checked,
+          'aria-label': label,
+          onClick: () => onChange(!checked),
+        }))
+    }
+
     function SettingsPage({ api }) {
       const storeState = useStore(api.store)
       const t = useT(api)
@@ -1668,6 +1768,8 @@ window.__ModuleLoader__.load({
           manualHolidays: source.manualHolidays,
           highIconSvg: source.highIconSvg,
           lowIconSvg: source.lowIconSvg,
+          sidebarWidthSync: source.sidebarWidthSync,
+          adaptiveWrap: source.adaptiveWrap,
         }
       }
 
@@ -1863,6 +1965,25 @@ window.__ModuleLoader__.load({
                 h('span', { className: 'lt-choice__text' },
                   h('span', { className: 'lt-choice__label' }, label),
                   h('span', { className: 'lt-choice__hint' }, hint)))))),
+
+          h('section', { className: 'lt-card' },
+            h('div', { className: 'lt-card__head' },
+              h('div', null,
+                h('h3', { className: 'lt-card__title' }, t('sidebarLayoutTitle')),
+                h('p', { className: 'lt-card__hint' }, t('sidebarLayoutHint')))),
+            h('div', { className: 'lt-card__body' },
+              h(ToggleRow, {
+                label: t('widthSyncLabel'),
+                hint: t('widthSyncHint'),
+                checked: draft.sidebarWidthSync,
+                onChange: value => update({ sidebarWidthSync: value }),
+              }),
+              h(ToggleRow, {
+                label: t('adaptiveWrapLabel'),
+                hint: t('adaptiveWrapHint'),
+                checked: draft.adaptiveWrap,
+                onChange: value => update({ adaptiveWrap: value }),
+              }))),
 
           h('section', { className: 'lt-card' },
             h('div', { className: 'lt-card__head' },
