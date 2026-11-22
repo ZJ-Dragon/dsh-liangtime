@@ -298,8 +298,11 @@ window.__ModuleLoader__.load({
 .lt-badge--sidebar.lt-badge--rail{width:36px;min-height:36px;padding:0;justify-content:center;border-radius:7px}
 .lt-badge--titlebar{box-sizing:border-box;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;transition:max-width .22s cubic-bezier(.22,1,.36,1)}
 .lt-badge__text{min-width:0;overflow:hidden;text-overflow:ellipsis;transition:width .22s cubic-bezier(.22,1,.36,1)}
-.lt-badge--titlebar .lt-badge__text{max-width:320px}
-.lt-badge--titlebar.lt-badge--hovered{max-width:360px}
+.lt-badge--titlebar .lt-badge__text{max-width:none}
+.lt-badge--titlebar.lt-badge--hovered{max-width:min(1000px,calc(100vw - 120px))}
+.lt-badge--wrap{align-items:flex-start;white-space:normal}
+.lt-badge--wrap .lt-badge__text{flex:1;white-space:normal;overflow:visible;text-overflow:clip;width:auto !important;line-height:1.35;padding-block:1px}
+.lt-badge--wrap .lt-badge__icon{margin-top:1px}
 .lt-badge__sizer{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:max-content;max-width:none;font:inherit;font-size:12px;font-weight:550;line-height:1}
 .lt-badge--hovered .lt-badge__text{animation:lt-hover-in .14s ease}
 .lt-badge--rail .lt-badge__text{display:none}
@@ -984,12 +987,18 @@ window.__ModuleLoader__.load({
         : (showCountdown && countdown ? countdown : baseText)
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
+      const wrap = variant === 'sidebar' && hovered && !rail
       const classes = [
         'lt-badge',
         `lt-badge--${variant}`,
         rail ? 'lt-badge--rail' : '',
         hovered ? 'lt-badge--hovered' : '',
+        wrap ? 'lt-badge--wrap' : '',
       ].filter(Boolean).join(' ')
+      const badgeStyle = { color }
+      if (variant === 'titlebar' && hovered && textWidth !== null && textWidth > 0) {
+        badgeStyle.maxWidth = `${textWidth + 48}px`
+      }
       const clearHoverTimer = () => {
         if (hoverTimer.current !== null) {
           window.clearTimeout(hoverTimer.current)
@@ -1036,7 +1045,7 @@ window.__ModuleLoader__.load({
         h('style', { key: 'lt-style' }, CSS),
         h('div', {
           className: classes,
-          style: { color },
+          style: badgeStyle,
           role: 'status',
           'aria-live': 'polite',
           'aria-label': (hovered || showCountdown) && countdown ? `${aria} · ${countdown}` : aria,
@@ -1055,7 +1064,7 @@ window.__ModuleLoader__.load({
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: textWidth === null ? undefined : { width: `${textWidth}px` },
+              style: wrap || textWidth === null ? undefined : { width: `${textWidth}px` },
             }, text)
           : null))
     }
