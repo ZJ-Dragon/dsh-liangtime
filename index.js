@@ -13,15 +13,19 @@ import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
-import { applySettingsPatch, DEFAULT_SETTINGS, readSettings } from './lib/settings.js'
+import {
+  applySettingsPatch, DEFAULT_SETTINGS, normalizeHolidayList, readSettings,
+} from './lib/settings.js'
 import { buildSnapshot, DEFAULT_OFFICIAL_SOURCE, officialFromSync } from './lib/schedule.js'
 
 const execFileAsync = promisify(execFile)
-const SCRIPT_PATH = fileURLToPath(new URL('./scripts/fetch_pricing.py', import.meta.url))
+const PRICING_SCRIPT_PATH = fileURLToPath(new URL('./scripts/fetch_pricing.py', import.meta.url))
+const HOLIDAY_SCRIPT_PATH = fileURLToPath(new URL('./scripts/fetch_holidays.py', import.meta.url))
+const DEFAULT_HOLIDAY_SOURCE = 'https://sousuo.www.gov.cn/search-gov/data'
 const STATE_PATH = '/api/liangtime.state'
 const SETTINGS_PATH = '/api/liangtime.settings'
 const SYNC_PATH = '/api/liangtime.sync'
-const MAX_BODY_BYTES = 64 * 1024
+const MAX_BODY_BYTES = 1_500_000
 const SYNC_TIMEOUT_MS = 28_000
 
 function noStoreJson(value, status = 200) {
@@ -89,9 +93,18 @@ export function apply(ctx) {
     sourceUrl: DEFAULT_OFFICIAL_SOURCE,
     language: null,
   }
+  let holidaySyncState = {
+    phase: 'idle',
+    error: null,
+    lastSuccess: null,
+    lastAttempt: null,
+    sourceUrl: DEFAULT_HOLIDAY_SOURCE,
+    notices: [],
+  }
   let revision = 1
   let disposed = false
   let syncPromise = null
+  let holidaySyncPromise = null
   let writeChain = Promise.resolve()
 
   const logWarning = (message, error) => {
@@ -116,7 +129,10 @@ export function apply(ctx) {
     return operation
   }
 
-  const snapshot = () => ({ ...buildSnapshot(settings, syncState, revision), instanceId })
+  const snapshot = () => ({
+    ...buildSnapshot(settings, syncState, holidaySyncState, revision),
+    instanceId,
+  })
 
   const load = async () => {
     await mkdir(dataDirectory, { recursive: true }).catch(error => {
@@ -137,17 +153,48 @@ export function apply(ctx) {
       syncState.sourceUrl = settings.cachedAuto.source ?? DEFAULT_OFFICIAL_SOURCE
       syncState.language = settings.cachedAuto.language ?? null
     }
+    holidaySyncState = {
+      ...holidaySyncState,
+      lastSuccess: typeof settings.holidayFetchedAt === 'string' ? settings.holidayFetchedAt : null,
+      notices: Array.isArray(settings.holidayNotices) ? settings.holidayNotices : [],
+    }
   }
 
-  const runPython = async (executable) => {
-    const result = await execFileAsync(executable, [SCRIPT_PATH], {
+  const runPython = async (executable, scriptPath) => {
+    const result = await execFileAsync(executable, [scriptPath], {
       timeout: SYNC_TIMEOUT_MS,
-      maxBuffer: 512 * 1024,
+      maxBuffer: 2 * 1024 * 1024,
       signal: lifetime.signal,
       windowsHide: true,
       env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
     })
     return result.stdout.trim()
+  }
+
+  const runScript = async scriptPath => {
+    const interpreters = [process.env.DSH_LIANGTIME_PYTHON, 'python3', 'python']
+      .filter((value, index, list) => typeof value === 'string' && value.length > 0 && list.indexOf(value) === index)
+    let raw
+    let lastError
+    for (const executable of interpreters) {
+      try {
+        raw = await runPython(executable, scriptPath)
+        break
+      } catch (error) {
+        lastError = error
+        if (error?.code !== 'ENOENT' && error?.code !== 'EACCES') break
+      }
+    }
+    if (raw === undefined) {
+      throw new Error(lastError?.code === 'ENOENT'
+        ? 'python3 was not found on PATH'
+        : lastError?.message ?? 'the sync command failed')
+    }
+    try {
+      return JSON.parse(raw)
+    } catch {
+      throw new Error('the sync script returned invalid JSON')
+    }
   }
 
   const syncOfficial = async () => {
@@ -160,30 +207,7 @@ export function apply(ctx) {
         lastAttempt: new Date().toISOString(),
       }
       revision += 1
-      const interpreters = [process.env.DSH_LIANGTIME_PYTHON, 'python3', 'python']
-        .filter((value, index, list) => typeof value === 'string' && value.length > 0 && list.indexOf(value) === index)
-      let raw
-      let lastError
-      for (const executable of interpreters) {
-        try {
-          raw = await runPython(executable)
-          break
-        } catch (error) {
-          lastError = error
-          if (error?.code !== 'ENOENT' && error?.code !== 'EACCES') break
-        }
-      }
-      if (raw === undefined) {
-        throw new Error(lastError?.code === 'ENOENT'
-          ? 'python3 was not found on PATH'
-          : lastError?.message ?? 'the pricing sync command failed')
-      }
-      let parsed
-      try {
-        parsed = JSON.parse(raw)
-      } catch {
-        throw new Error('the pricing sync script returned invalid JSON')
-      }
+      const parsed = await runScript(PRICING_SCRIPT_PATH)
       if (parsed?.ok !== true) {
         throw new Error(typeof parsed?.error === 'string' ? parsed.error : 'the pricing page did not match the expected expression')
       }
@@ -223,18 +247,99 @@ export function apply(ctx) {
     return syncPromise
   }
 
+  const syncHolidays = async () => {
+    if (holidaySyncPromise !== null) return holidaySyncPromise
+    holidaySyncPromise = (async () => {
+      holidaySyncState = {
+        ...holidaySyncState,
+        phase: 'syncing',
+        error: null,
+        lastAttempt: new Date().toISOString(),
+      }
+      revision += 1
+      const parsed = await runScript(HOLIDAY_SCRIPT_PATH)
+      if (parsed?.ok !== true) {
+        const detail = Array.isArray(parsed?.errors) && parsed.errors.length > 0
+          ? parsed.errors.join('; ')
+          : typeof parsed?.error === 'string' ? parsed.error : 'the holiday notice did not match the expected expression'
+        throw new Error(detail)
+      }
+      const holidays = normalizeHolidayList(parsed.holidays)
+      if (holidays === undefined || holidays.length === 0) {
+        throw new Error('the holiday notice returned no usable dates')
+      }
+      const notices = Array.isArray(parsed.notices)
+        ? parsed.notices
+            .filter(notice => notice !== null && typeof notice === 'object' && Number.isInteger(notice.year))
+            .map(notice => ({
+              year: notice.year,
+              title: typeof notice.title === 'string' ? notice.title : '',
+              url: typeof notice.url === 'string' ? notice.url : '',
+              holidayCount: Number.isInteger(notice.holidayCount) ? notice.holidayCount : 0,
+            }))
+        : []
+      if (disposed) return
+      const previous = {
+        cachedHolidays: settings.cachedHolidays,
+        holidayFetchedAt: settings.holidayFetchedAt,
+        holidayNotices: settings.holidayNotices,
+      }
+      settings = {
+        ...settings,
+        cachedHolidays: holidays,
+        holidayFetchedAt: typeof parsed.fetchedAt === 'string' ? parsed.fetchedAt : new Date().toISOString(),
+        holidayNotices: notices,
+      }
+      try {
+        await persist()
+      } catch (error) {
+        settings = { ...settings, ...previous }
+        throw error
+      }
+      if (disposed) return
+      holidaySyncState = {
+        phase: 'ok',
+        error: null,
+        lastSuccess: settings.holidayFetchedAt,
+        lastAttempt: new Date().toISOString(),
+        sourceUrl: DEFAULT_HOLIDAY_SOURCE,
+        notices,
+      }
+      revision += 1
+    })().catch(error => {
+      if (disposed || lifetime.signal.aborted) return
+      holidaySyncState = {
+        ...holidaySyncState,
+        phase: 'error',
+        error: error instanceof Error ? error.message : String(error),
+        lastAttempt: new Date().toISOString(),
+      }
+      revision += 1
+    }).finally(() => {
+      holidaySyncPromise = null
+    })
+    return holidaySyncPromise
+  }
+
+  const syncAll = async () => {
+    await Promise.all([syncOfficial(), syncHolidays()])
+  }
+
   const ready = load().catch(error => {
     logWarning('initialization failed', error)
   })
 
   ctx.effect(() => {
     void ready.then(() => {
-      if (!disposed) void syncOfficial()
+      if (!disposed) void syncAll()
     })
     return async () => {
       disposed = true
       lifetime.abort()
-      if (syncPromise !== null) await syncPromise.catch(() => {})
+      await Promise.all([
+        syncPromise === null ? undefined : syncPromise.catch(() => {}),
+        holidaySyncPromise === null ? undefined : holidaySyncPromise.catch(() => {}),
+      ])
       await writeChain.catch(() => {})
     }
   }, 'dsh-liangtime: lifetime')
@@ -282,7 +387,7 @@ export function apply(ctx) {
       requestBody: 'buffered',
       fetch: async () => {
         await ready
-        await syncOfficial()
+        await syncAll()
         return noStoreJson(snapshot())
       },
     }), 'dsh-liangtime: sync route')

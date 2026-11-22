@@ -109,6 +109,50 @@ window.__ModuleLoader__.load({
       badgeFallback: '内置默认时段',
       countdown: '距离{state}还有{hours}小时{minutes}分',
       noUpcoming: '暂无下一次切换',
+      holidaysTitle: '法定节假日',
+      holidaysHint: '官方节假日自动同步自中国政府网；非中国用户可切换到手动日历。',
+      holidaySourceAuto: '自动同步',
+      holidaySourceManual: '手动日历',
+      holidaySyncOk: '官方节假日已同步',
+      holidaySyncSyncing: '正在同步法定节假日…',
+      holidaySyncIdle: '尚未同步法定节假日',
+      holidaySyncError: '本次启动法定节假日同步失败，请检查或手动标记',
+      holidaySyncedSummary: '已同步 {count} 天（{years}）',
+      holidayNoData: '暂无官方节假日数据',
+      holidayAutoLegend: '官方节假日',
+      holidayManualLegend: '手动标记',
+      holidayManualCount: '手动标记 {count} 天',
+      holidayManualHint: '点击日期添加或移除手动节假日；自动模式下手动日期作为补充。',
+      holidayManualOnlyHint: '手动模式只使用下方标记的日期，不读取官方同步结果。',
+      holidayManualClear: '清空手动标记',
+      holidayThisMonth: '本月',
+      holidayPrevMonth: '上个月',
+      holidayNextMonth: '下个月',
+      holidayToday: '今天',
+      holidayBadge: '法定节假日',
+      holidaySourceLink: '数据来源：中国政府网节假日安排',
+      iconsTitle: '自定义图标',
+      iconsHint: '可选：为高峰、低峰分别导入 SVG。自定义图标按文件自身颜色渲染；徽标文字仍使用设置颜色。',
+      highIcon: '高峰图标',
+      lowIcon: '低峰图标',
+      importSvg: '导入 SVG',
+      replaceSvg: '更换 SVG',
+      removeIcon: '移除图标',
+      svgSpecTitle: '导入 SVG 前请确认规范',
+      svgSpecIntro: '确认后才会打开系统文件选择器。',
+      svgSpecSize: '仅支持 .svg 文件，UTF-8 编码，单文件不超过 128 KB。',
+      svgSpecViewBox: '根节点必须包含 viewBox，推荐 0 0 16 16 或 0 0 24 24。',
+      svgSpecShapes: '仅使用 path、circle、rect、line、polyline、polygon、ellipse、g、defs、gradient 等静态图形元素。',
+      svgSpecForbidden: '禁止 script、事件属性、foreignObject、image、use、a、style、外部 href 和 javascript: 引用。',
+      svgSpecColor: '自定义 SVG 会保留文件自身颜色；内置图标的颜色设置不生效，文字颜色仍有效。',
+      cancel: '取消',
+      continueImport: '继续导入',
+      svgEmpty: '文件为空',
+      svgTooLarge: '文件超过 128 KB',
+      svgStructure: '不是有效的 SVG 文档',
+      svgViewBox: '缺少 viewBox',
+      svgForbidden: '包含不允许的标签、属性或外部引用',
+      svgUploadFailed: '导入失败：{reason}',
       weekPrefix: '周',
       manualScheduleNote: '手动设置会在保存后替换官方时段。',
       officialCurrent: '官方时段：{days} {ranges}',
@@ -198,6 +242,50 @@ window.__ModuleLoader__.load({
       badgeFallback: 'built-in fallback',
       countdown: '{hours}h {minutes}m until {state}',
       noUpcoming: 'No upcoming change',
+      holidaysTitle: 'Public holidays',
+      holidaysHint: 'Chinese public holidays sync from gov.cn automatically. Non-China users can switch to the manual calendar.',
+      holidaySourceAuto: 'Auto sync',
+      holidaySourceManual: 'Manual calendar',
+      holidaySyncOk: 'Official holidays are synced',
+      holidaySyncSyncing: 'Syncing official holidays…',
+      holidaySyncIdle: 'Official holidays have not synced yet',
+      holidaySyncError: 'This startup’s holiday sync failed. Check the connection or mark days manually.',
+      holidaySyncedSummary: '{count} days synced ({years})',
+      holidayNoData: 'No official holiday data yet',
+      holidayAutoLegend: 'Official holiday',
+      holidayManualLegend: 'Manual mark',
+      holidayManualCount: '{count} manual days',
+      holidayManualHint: 'Click a date to add or remove a manual holiday. In auto mode manual dates are additive.',
+      holidayManualOnlyHint: 'Manual mode uses only the dates marked below and ignores the official sync.',
+      holidayManualClear: 'Clear manual marks',
+      holidayThisMonth: 'This month',
+      holidayPrevMonth: 'Previous month',
+      holidayNextMonth: 'Next month',
+      holidayToday: 'Today',
+      holidayBadge: 'Public holiday',
+      holidaySourceLink: 'Source: gov.cn holiday notices',
+      iconsTitle: 'Custom icons',
+      iconsHint: 'Optional: import separate SVGs for peak and off-peak. Custom icons keep their own colors; badge text still follows the color setting.',
+      highIcon: 'Peak icon',
+      lowIcon: 'Off-peak icon',
+      importSvg: 'Import SVG',
+      replaceSvg: 'Replace SVG',
+      removeIcon: 'Remove icon',
+      svgSpecTitle: 'Review the SVG rules before importing',
+      svgSpecIntro: 'The system file picker opens only after you continue.',
+      svgSpecSize: 'SVG only, UTF-8, no larger than 128 KB per file.',
+      svgSpecViewBox: 'The root element must include a viewBox; 0 0 16 16 or 0 0 24 24 is recommended.',
+      svgSpecShapes: 'Use static shapes only: path, circle, rect, line, polyline, polygon, ellipse, g, defs, gradient.',
+      svgSpecForbidden: 'No script, event attributes, foreignObject, image, use, a, style, external href, or javascript: references.',
+      svgSpecColor: 'Custom SVGs keep their own colors. The built-in icon color setting does not apply to them; text color still does.',
+      cancel: 'Cancel',
+      continueImport: 'Continue',
+      svgEmpty: 'the file is empty',
+      svgTooLarge: 'the file is larger than 128 KB',
+      svgStructure: 'the file is not a valid SVG document',
+      svgViewBox: 'the SVG has no viewBox',
+      svgForbidden: 'the SVG contains a forbidden tag, attribute, or external reference',
+      svgUploadFailed: 'Import failed: {reason}',
       weekPrefix: '',
       manualScheduleNote: 'Manual windows replace the official schedule after saving.',
       officialCurrent: 'Official windows: {days} {ranges}',
@@ -230,6 +318,7 @@ window.__ModuleLoader__.load({
 .lt-status{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .lt-status__main{display:flex;align-items:center;gap:12px;min-width:0}
 .lt-status__icon{display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:var(--dsw-alias-bg-layer-2);flex:none}
+.lt-status__custom-icon{display:block;width:20px;height:20px;object-fit:contain}
 .lt-status__label{display:flex;flex-direction:column;gap:3px;min-width:0}
 .lt-status__text{font-size:18px;font-weight:650;line-height:1.2;overflow-wrap:anywhere}
 .lt-status__meta{font-size:12px;color:var(--dsw-alias-label-secondary);line-height:1.4}
@@ -317,6 +406,41 @@ window.__ModuleLoader__.load({
 .lt-loading__dot{width:7px;height:7px;border-radius:50%;background:var(--dsw-alias-brand-primary);animation:lt-pulse 1.1s ease-in-out infinite}
 .lt-error-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;font-size:13px;color:var(--dsw-alias-label-primary)}
 @keyframes lt-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+
+.lt-badge__custom-icon{display:block;width:14px;height:14px;flex:none;object-fit:contain}
+.lt-preview__icon{display:block;width:14px;height:14px;object-fit:contain}
+.lt-icon-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--dsw-alias-border-l1)}
+.lt-icon-row:first-child{border-top:0;padding-top:0}
+.lt-icon-preview{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex:none;border:1px solid var(--dsw-alias-border-l1);border-radius:9px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary)}
+.lt-icon-preview img{display:block;width:22px;height:22px;object-fit:contain}
+.lt-icon-row__meta{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.lt-icon-row__title{font-size:12px;font-weight:550}
+.lt-icon-row__hint{font-size:11px;line-height:1.4;color:var(--dsw-alias-label-secondary)}
+.lt-icon-row__actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lt-cal{display:flex;flex-direction:column;gap:8px}
+.lt-cal__head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lt-cal__title{font-size:13px;font-weight:600}
+.lt-cal__nav{display:flex;align-items:center;gap:4px}
+.lt-cal__grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.lt-cal__weekday{text-align:center;font-size:10px;line-height:1.2;color:var(--dsw-alias-label-secondary);padding:2px 0}
+.lt-cal__cell{display:flex;align-items:center;justify-content:center}
+.lt-cal__day{appearance:none;position:relative;box-sizing:border-box;width:100%;aspect-ratio:1;min-height:30px;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
+.lt-cal__day:hover{background:var(--dsw-alias-bg-layer-2)}
+.lt-cal__day--auto::after{content:"";position:absolute;left:50%;bottom:3px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.lt-cal__day--manual{background:var(--dsw-alias-brand-primary);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font-weight:600}
+.lt-cal__day--manual:hover{background:var(--dsw-alias-brand-primary);opacity:.92}
+.lt-cal__day--manual::after{background:var(--dsw-alias-bg-base)}
+.lt-cal__day--today{box-shadow:inset 0 0 0 1px var(--dsw-alias-label-primary)}
+.lt-cal__legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--dsw-alias-label-secondary)}
+.lt-cal__legend-item{display:flex;align-items:center;gap:5px}
+.lt-cal__legend-dot{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.lt-cal__legend-swatch{width:10px;height:10px;border-radius:3px;background:var(--dsw-alias-brand-primary)}
+.lt-dialog{box-sizing:border-box;width:min(560px,calc(100vw - 32px));max-height:min(80vh,680px);overflow:auto;padding:20px;border:1px solid var(--dsw-alias-border-l1);border-radius:16px;background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);box-shadow:var(--dsw-elevation-prominent)}
+.lt-dialog::backdrop{background:color-mix(in srgb,var(--dsw-alias-bg-base) 58%,transparent);backdrop-filter:blur(2px)}
+.lt-dialog__title{margin:0 0 8px;font-size:16px;font-weight:600}
+.lt-dialog__intro{margin:0 0 12px;font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary)}
+.lt-dialog__list{margin:0 0 18px;padding-inline-start:18px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary)}
+.lt-dialog__actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 @media (max-width:560px){.lt-grid{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
 @media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge__text{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
 `
@@ -372,6 +496,7 @@ window.__ModuleLoader__.load({
       const clock = beijingClock(new Date(timestamp))
       const override = snapshot.config.todayOverride
       if (override && override.date === clock.date) return override.mode === 'peak'
+      if (Array.isArray(snapshot.holidays?.effective) && snapshot.holidays.effective.includes(clock.date)) return false
       const schedule = snapshot.schedule
       if (!schedule.days.includes(clock.weekday)) return false
       return schedule.intervals.some(interval => clock.minutes >= interval.start && clock.minutes < interval.end)
@@ -396,6 +521,14 @@ window.__ModuleLoader__.load({
       if (override && override.date === today.date) {
         const nextDate = beijingClock(new Date(nowMs + 24 * 60 * 60000)).date
         candidates.push(beijingInstant(nextDate, 0))
+      }
+      const horizon = nowMs + 22 * 24 * 60 * 60000
+      const holidays = Array.isArray(snapshot.holidays?.effective) ? snapshot.holidays.effective : []
+      for (const holiday of holidays) {
+        const start = beijingInstant(holiday, 0)
+        if (start > nowMs && start < horizon) candidates.push(start)
+        const end = beijingInstant(beijingClock(new Date(start + 24 * 60 * 60000)).date, 0)
+        if (end > nowMs && end < horizon) candidates.push(end)
       }
       // One weekly cycle plus a margin catches the next active weekday.
       for (let offset = 0; offset < 22; offset += 1) {
@@ -427,6 +560,80 @@ window.__ModuleLoader__.load({
         hours: Math.floor(totalMinutes / 60),
         minutes: totalMinutes % 60,
       })
+    }
+
+    function svgDataUrl(svg) {
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+    }
+
+    function customIconSource(config, peak) {
+      const svg = peak ? config.highIconSvg : config.lowIconSvg
+      return typeof svg === 'string' && svg.trim().length > 0 ? svgDataUrl(svg) : null
+    }
+
+
+    function validateSvgText(text) {
+      if (typeof text !== 'string' || text.trim().length === 0) return 'svgEmpty'
+      if (new TextEncoder().encode(text).length > 128 * 1024) return 'svgTooLarge'
+      const trimmed = text.trim()
+      if (!/^(?:<\?xml[\s\S]*?\?>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg\b/i.test(trimmed)
+        || !/<\/svg>\s*$/i.test(trimmed)) return 'svgStructure'
+      if (!/\bviewBox\s*=\s*["'][^"']+["']/i.test(trimmed)) return 'svgViewBox'
+      if (/<!DOCTYPE|<!ENTITY|<\s*(script|foreignObject|iframe|object|embed|image|use|style|a|animate|set)\b/i.test(trimmed)
+        || /\son[a-z]+\s*=/i.test(trimmed)
+        || /\sstyle\s*=/i.test(trimmed)
+        || /(?:href|xlink:href)\s*=/i.test(trimmed)
+        || /javascript:/i.test(trimmed)
+        || /url\s*\(\s*["']?(?!#)/i.test(trimmed)) return 'svgForbidden'
+      try {
+        const parsed = new DOMParser().parseFromString(trimmed, 'image/svg+xml')
+        if (parsed.getElementsByTagName('parsererror').length > 0) return 'svgStructure'
+        if (parsed.documentElement?.localName?.toLowerCase() !== 'svg') return 'svgStructure'
+      } catch {
+        return 'svgStructure'
+      }
+      return null
+    }
+
+    function monthParts(value) {
+      const match = /^(\d{4})-(\d{2})$/.exec(value ?? '')
+      if (match === null) return null
+      const year = Number(match[1])
+      const month = Number(match[2])
+      if (month < 1 || month > 12) return null
+      return { year, month }
+    }
+
+    function shiftMonth(value, delta) {
+      const parts = monthParts(value) ?? monthParts(beijingClock(new Date()).date.slice(0, 7))
+      if (parts === null) return value
+      const date = new Date(Date.UTC(parts.year, parts.month - 1 + delta, 1))
+      return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}`
+    }
+
+    function calendarHeading(value, locale) {
+      const parts = monthParts(value)
+      if (parts === null) return value
+      const tag = String(locale?.active ?? '').toLowerCase().startsWith('zh') ? 'zh-CN' : 'en-US'
+      return new Intl.DateTimeFormat(tag, { year: 'numeric', month: 'long' })
+        .format(new Date(Date.UTC(parts.year, parts.month - 1, 1)))
+    }
+
+    function calendarCells(value) {
+      const parts = monthParts(value)
+      if (parts === null) return []
+      const first = new Date(Date.UTC(parts.year, parts.month - 1, 1))
+      const leading = (first.getUTCDay() + 6) % 7
+      const days = new Date(Date.UTC(parts.year, parts.month, 0)).getUTCDate()
+      const cells = Array.from({ length: leading }, () => null)
+      for (let day = 1; day <= days; day += 1) {
+        cells.push({
+          day,
+          date: `${parts.year}-${pad(parts.month)}-${pad(day)}`,
+        })
+      }
+      while (cells.length % 7 !== 0) cells.push(null)
+      return cells
     }
 
     function formatTimestamp(value, locale) {
@@ -519,6 +726,10 @@ window.__ModuleLoader__.load({
         },
         todayMode: activeOverride,
         todayDate,
+        holidaySource: snapshot.config.holidaySource ?? 'auto',
+        manualHolidays: [...(snapshot.config.manualHolidays ?? [])],
+        highIconSvg: snapshot.config.highIconSvg ?? null,
+        lowIconSvg: snapshot.config.lowIconSvg ?? null,
       }
     }
 
@@ -536,6 +747,10 @@ window.__ModuleLoader__.load({
         manualSchedule: draft.manualSchedule,
         todayMode: draft.todayMode,
         todayDate: draft.todayDate,
+        holidaySource: draft.holidaySource,
+        manualHolidays: draft.manualHolidays,
+        highIconSvg: draft.highIconSvg,
+        lowIconSvg: draft.lowIconSvg,
       })
     }
 
@@ -696,6 +911,18 @@ window.__ModuleLoader__.load({
       }))
     }
 
+    function badgeIcon(config, peak, className = 'lt-badge__icon lt-badge__custom-icon', size = 14) {
+      const source = customIconSource(config, peak)
+      if (source === null) return h(TrendIcon, { up: peak, size })
+      return h('img', {
+        className,
+        src: source,
+        alt: '',
+        'aria-hidden': 'true',
+        draggable: 'false',
+      })
+    }
+
     function Badge({ api, variant, wide }) {
       const storeState = useStore(api.store)
       const t = useT(api)
@@ -708,13 +935,15 @@ window.__ModuleLoader__.load({
       const swapTimer = React.useRef(null)
       const snapshot = storeState.snapshot
       React.useEffect(() => {
-        const phase = snapshot?.sync?.phase
-        if (!snapshot || (phase !== 'syncing' && phase !== 'idle')) return undefined
+        const pricing = snapshot?.sync?.phase
+        const holidays = snapshot?.holidaySync?.phase
+        const waiting = (value) => value === 'syncing' || value === 'idle'
+        if (!snapshot || (!waiting(pricing) && !waiting(holidays))) return undefined
         const timer = window.setInterval(() => {
           void api.store.refresh().catch(() => {})
         }, 1500)
         return () => window.clearInterval(timer)
-      }, [api, snapshot?.sync?.phase])
+      }, [api, snapshot?.sync?.phase, snapshot?.holidaySync?.phase])
       React.useEffect(() => {
         if (snapshot !== null || !storeState.error) return undefined
         const timer = window.setInterval(() => {
@@ -821,7 +1050,7 @@ window.__ModuleLoader__.load({
           'data-liangtime-state': peak ? 'peak' : 'low',
           'data-liangtime-expanded': hovered ? 'true' : undefined,
         },
-        h(TrendIcon, { up: peak }),
+        badgeIcon(snapshot.config, peak),
         h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: sizerRef }, layoutText),
         text
           ? h('span', {
@@ -1002,6 +1231,179 @@ window.__ModuleLoader__.load({
             : null))
     }
 
+    function HolidayCalendar({ t, locale, month, setMonth, draft, update, autoHolidays, todayDate }) {
+      const cells = calendarCells(month)
+      const auto = new Set(autoHolidays)
+      const manual = new Set(draft.manualHolidays)
+      const toggle = date => {
+        const next = manual.has(date)
+          ? draft.manualHolidays.filter(item => item !== date)
+          : [...draft.manualHolidays, date].sort()
+        update({ manualHolidays: next })
+      }
+      return h('div', { className: 'lt-cal' },
+        h('div', { className: 'lt-cal__head' },
+          h('span', { className: 'lt-cal__title' }, calendarHeading(month, locale)),
+          h('div', { className: 'lt-cal__nav' },
+            h('button', {
+              type: 'button',
+              className: 'lt-btn lt-btn--quiet',
+              'aria-label': t('holidayPrevMonth'),
+              onClick: () => setMonth(value => shiftMonth(value, -1)),
+            }, '‹'),
+            h('button', {
+              type: 'button',
+              className: 'lt-btn lt-btn--quiet',
+              onClick: () => setMonth(beijingClock(new Date()).date.slice(0, 7)),
+            }, t('holidayThisMonth')),
+            h('button', {
+              type: 'button',
+              className: 'lt-btn lt-btn--quiet',
+              'aria-label': t('holidayNextMonth'),
+              onClick: () => setMonth(value => shiftMonth(value, 1)),
+            }, '›'))),
+        h('div', { className: 'lt-cal__grid' },
+          WEEK_ORDER.map(day => h('span', {
+            key: `weekday-${day}`,
+            className: 'lt-cal__weekday',
+          }, t(WEEKDAY_KEYS[day])))),
+        h('div', { className: 'lt-cal__grid' },
+          cells.map((cell, index) => cell === null
+            ? h('span', { key: `empty-${index}`, className: 'lt-cal__cell' })
+            : h('span', { key: cell.date, className: 'lt-cal__cell' },
+                h('button', {
+                  type: 'button',
+                  className: [
+                    'lt-cal__day',
+                    auto.has(cell.date) ? 'lt-cal__day--auto' : '',
+                    manual.has(cell.date) ? 'lt-cal__day--manual' : '',
+                    cell.date === todayDate ? 'lt-cal__day--today' : '',
+                  ].filter(Boolean).join(' '),
+                  'aria-pressed': manual.has(cell.date),
+                  'aria-label': cell.date,
+                  onClick: () => toggle(cell.date),
+                }, cell.day)))),
+        h('div', { className: 'lt-cal__legend' },
+          h('span', { className: 'lt-cal__legend-item' },
+            h('span', { className: 'lt-cal__legend-dot' }),
+            h('span', null, t('holidayAutoLegend'))),
+          h('span', { className: 'lt-cal__legend-item' },
+            h('span', { className: 'lt-cal__legend-swatch' }),
+            h('span', null, t('holidayManualLegend')))))
+    }
+
+    function HolidayCard({
+      t, locale, snapshot, draft, update, month, setMonth, clock, syncing, manualSync,
+    }) {
+      const holidaySync = snapshot.holidaySync ?? { phase: 'idle' }
+      const holidays = snapshot.holidays ?? { auto: [], notices: [] }
+      const auto = Array.isArray(holidays.auto) ? holidays.auto : []
+      const notices = Array.isArray(holidays.notices) ? holidays.notices : []
+      const separator = locale?.active?.startsWith('zh') ? '、' : ', '
+      const noticeYears = [...new Set(notices.map(notice => notice.year))]
+      const years = (noticeYears.length > 0
+        ? noticeYears
+        : [...new Set(auto.map(day => day.slice(0, 4)))])
+        .join(separator)
+      const syncMessage = holidaySync.phase === 'ok'
+        ? t('holidaySyncOk')
+        : holidaySync.phase === 'syncing'
+          ? t('holidaySyncSyncing')
+          : holidaySync.phase === 'error'
+            ? t('holidaySyncError')
+            : t('holidaySyncIdle')
+      const dotClass = holidaySync.phase === 'ok'
+        ? 'lt-sync__dot lt-sync__dot--ok'
+        : holidaySync.phase === 'error'
+          ? 'lt-sync__dot lt-sync__dot--error'
+          : holidaySync.phase === 'syncing'
+            ? 'lt-sync__dot lt-sync__dot--syncing'
+            : 'lt-sync__dot'
+      return h('section', { className: 'lt-card' },
+        h('div', { className: 'lt-card__head' },
+          h('div', null,
+            h('h3', { className: 'lt-card__title' }, t('holidaysTitle')),
+            h('p', { className: 'lt-card__hint' }, t('holidaysHint')))),
+        h('div', { className: 'lt-card__body' },
+          h('div', { className: 'lt-sync__row' },
+            h('div', { className: 'lt-sync__state' },
+              h('span', { className: dotClass }),
+              h('span', { className: holidaySync.phase === 'error' ? 'lt-sync-error' : '' }, syncMessage)),
+            h('button', {
+              type: 'button',
+              className: 'lt-btn lt-btn--quiet',
+              disabled: syncing || holidaySync.phase === 'syncing' || snapshot.sync?.phase === 'syncing',
+              onClick: () => { void manualSync() },
+            }, syncing || holidaySync.phase === 'syncing' || snapshot.sync?.phase === 'syncing'
+              ? t('syncing')
+              : t('manualSync'))),
+          holidaySync.phase === 'error' && holidaySync.error
+            ? h('div', { className: 'lt-sync-detail' }, t('syncDetail', { error: holidaySync.error }))
+            : null,
+          h('div', { className: 'lt-seg', role: 'group', 'aria-label': t('holidaysTitle') },
+            h('button', {
+              type: 'button',
+              'aria-pressed': draft.holidaySource === 'auto',
+              onClick: () => update({ holidaySource: 'auto' }),
+            }, t('holidaySourceAuto')),
+            h('button', {
+              type: 'button',
+              'aria-pressed': draft.holidaySource === 'manual',
+              onClick: () => update({ holidaySource: 'manual' }),
+            }, t('holidaySourceManual'))),
+          h('div', { className: 'lt-schedule-summary' },
+            draft.holidaySource === 'auto' ? t('holidayManualHint') : t('holidayManualOnlyHint')),
+          auto.length > 0
+            ? h('div', { className: 'lt-schedule-summary' },
+                t('holidaySyncedSummary', { count: auto.length, years: years || '—' }))
+            : h('div', { className: 'lt-schedule-summary' }, t('holidayNoData')),
+          h('div', null,
+            h('a', {
+              className: 'lt-link',
+              href: notices[0]?.url ?? holidaySync.sourceUrl ?? 'https://www.gov.cn/zhengce/zhengceku/',
+              target: '_blank',
+              rel: 'noreferrer',
+            }, t('holidaySourceLink'))),
+          h(HolidayCalendar, {
+            t,
+            locale,
+            month,
+            setMonth,
+            draft,
+            update,
+            autoHolidays: auto,
+            todayDate: clock.date,
+          }),
+          h('div', { className: 'lt-sync__row' },
+            h('span', { className: 'lt-note' }, t('holidayManualCount', { count: draft.manualHolidays.length })),
+            h('button', {
+              type: 'button',
+              className: 'lt-btn lt-btn--quiet',
+              disabled: draft.manualHolidays.length === 0,
+              onClick: () => update({ manualHolidays: [] }),
+            }, t('holidayManualClear')))))
+    }
+
+    function SvgSpecDialog({ t, dialogRef, onCancel, onContinue }) {
+      return h('dialog', {
+        ref: dialogRef,
+        className: 'lt-dialog',
+        onCancel: event => {
+          event.preventDefault()
+          onCancel()
+        },
+        onClose: onCancel,
+      },
+      h('h3', { className: 'lt-dialog__title' }, t('svgSpecTitle')),
+      h('p', { className: 'lt-dialog__intro' }, t('svgSpecIntro')),
+      h('ul', { className: 'lt-dialog__list' },
+        ['svgSpecSize', 'svgSpecViewBox', 'svgSpecShapes', 'svgSpecForbidden', 'svgSpecColor']
+          .map(key => h('li', { key }, t(key)))),
+      h('div', { className: 'lt-dialog__actions' },
+        h('button', { type: 'button', className: 'lt-btn', onClick: onCancel }, t('cancel')),
+        h('button', { type: 'button', className: 'lt-btn lt-btn--primary', onClick: onContinue }, t('continueImport'))))
+    }
+
     function SettingsIcon({ size = 16 }) {
       return h('svg', {
         width: size,
@@ -1047,7 +1449,7 @@ window.__ModuleLoader__.load({
         h('div', { className: 'lt-tone__top' },
           h('span', { className: 'lt-tone__label' }, isPeak ? t('peakLabel') : t('lowLabel')),
           h('span', { className: 'lt-preview', style: { color: previewColor } },
-            h(TrendIcon, { up: isPeak, size: 14 }),
+            badgeIcon(draft, isPeak, 'lt-preview__icon'),
             h('span', null, previewText))),
         h('label', { className: 'lt-field' },
           h('span', { className: 'lt-field__label' }, label),
@@ -1106,8 +1508,14 @@ window.__ModuleLoader__.load({
       const [saved, setSaved] = React.useState(false)
       const [saveError, setSaveError] = React.useState(null)
       const [syncError, setSyncError] = React.useState(null)
+      const [uploadTone, setUploadTone] = React.useState(null)
+      const [uploadError, setUploadError] = React.useState(null)
+      const [calendarMonth, setCalendarMonth] = React.useState(() => beijingClock(new Date()).date.slice(0, 7))
       const savedTimer = React.useRef(null)
       const latest = React.useRef(null)
+      const fileInputRef = React.useRef(null)
+      const pendingToneRef = React.useRef(null)
+      const dialogRef = React.useRef(null)
       const snapshot = storeState.snapshot
 
       React.useEffect(() => {
@@ -1128,16 +1536,29 @@ window.__ModuleLoader__.load({
       }, [])
 
       React.useEffect(() => {
-        if (snapshot?.sync?.phase !== 'syncing' && snapshot?.sync?.phase !== 'idle') return undefined
+        const pricing = snapshot?.sync?.phase
+        const holidays = snapshot?.holidaySync?.phase
+        const waiting = (value) => value === 'syncing' || value === 'idle'
+        if (!waiting(pricing) && !waiting(holidays)) return undefined
         const timer = window.setInterval(() => {
           void api.store.refresh().catch(() => {})
         }, 1500)
         return () => window.clearInterval(timer)
-      }, [api, snapshot?.sync?.phase])
+      }, [api, snapshot?.sync?.phase, snapshot?.holidaySync?.phase])
 
       React.useEffect(() => {
         if (snapshot?.sync?.phase === 'ok') setSyncError(null)
       }, [snapshot?.sync?.phase])
+
+      React.useEffect(() => {
+        const dialog = dialogRef.current
+        if (uploadTone === null || dialog === null) return
+        try {
+          if (!dialog.open) dialog.showModal()
+        } catch {
+          dialog.setAttribute('open', '')
+        }
+      }, [uploadTone])
 
       React.useEffect(() => () => {
         const current = latest.current
@@ -1220,6 +1641,10 @@ window.__ModuleLoader__.load({
           scheduleSource: source.scheduleSource,
           manualSchedule: source.manualSchedule,
           todayOverride,
+          holidaySource: source.holidaySource,
+          manualHolidays: source.manualHolidays,
+          highIconSvg: source.highIconSvg,
+          lowIconSvg: source.lowIconSvg,
         }
       }
 
@@ -1238,6 +1663,46 @@ window.__ModuleLoader__.load({
           if (previous === null) return previous
           return { ...previous, manualSchedule: updater(previous.manualSchedule) }
         })
+      }
+
+      const openUpload = tone => {
+        setUploadError(null)
+        setUploadTone(tone)
+      }
+
+      const closeUpload = () => {
+        setUploadTone(null)
+      }
+
+      const continueUpload = () => {
+        if (uploadTone === null) return
+        pendingToneRef.current = uploadTone
+        fileInputRef.current?.click()
+        setUploadTone(null)
+      }
+
+      const handleFilePicked = async event => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        const tone = pendingToneRef.current
+        pendingToneRef.current = null
+        if (file === undefined || tone === null) return
+        if (file.size > 128 * 1024) {
+          setUploadError(t('svgUploadFailed', { reason: t('svgTooLarge') }))
+          return
+        }
+        try {
+          const text = await file.text()
+          const reason = validateSvgText(text)
+          if (reason !== null) {
+            setUploadError(t('svgUploadFailed', { reason: t(reason) }))
+            return
+          }
+          update(tone === 'high' ? { highIconSvg: text.trim() } : { lowIconSvg: text.trim() })
+          setUploadError(null)
+        } catch {
+          setUploadError(t('svgUploadFailed', { reason: t('svgStructure') }))
+        }
       }
 
       const manualSync = async () => {
@@ -1320,12 +1785,12 @@ window.__ModuleLoader__.load({
             h('div', { className: 'lt-status' },
               h('div', { className: 'lt-status__main' },
                 h('span', { className: 'lt-status__icon', style: { color: statusColor } },
-                  h(TrendIcon, { up: peak, size: 20 })),
+                  badgeIcon(snapshot.config, peak, 'lt-status__custom-icon', 20)),
                 h('div', { className: 'lt-status__label' },
                   h('span', { className: 'lt-status__text', style: { color: statusColor } },
                     statusText || t(peak ? 'peak' : 'low')),
                   h('span', { className: 'lt-status__meta' },
-                    `${t('clock', { time: clock.timeLabel })} · ${peak ? t('peakLabel') : t('lowLabel')}`))),
+                    `${t('clock', { time: clock.timeLabel })} · ${peak ? t('peakLabel') : t('lowLabel')}${snapshot.now?.holiday ? ` · ${t('holidayBadge')}` : ''}`))),
               null),
             h('div', { className: 'lt-sync' },
               h('div', { className: 'lt-sync__row' },
@@ -1335,9 +1800,11 @@ window.__ModuleLoader__.load({
                 h('button', {
                   type: 'button',
                   className: 'lt-btn lt-btn--quiet',
-                  disabled: syncing || snapshot.sync.phase === 'syncing',
+                  disabled: syncing || snapshot.sync.phase === 'syncing' || snapshot.holidaySync?.phase === 'syncing',
                   onClick: () => { void manualSync() },
-                }, syncing || snapshot.sync.phase === 'syncing' ? t('syncing') : t('manualSync'))),
+                }, syncing || snapshot.sync.phase === 'syncing' || snapshot.holidaySync?.phase === 'syncing'
+                  ? t('syncing')
+                  : t('manualSync'))),
               syncError
                 ? h('div', { className: 'lt-sync-detail' }, t('syncDetail', { error: syncError }))
                 : snapshot.sync.phase === 'error' && snapshot.sync.error
@@ -1383,6 +1850,58 @@ window.__ModuleLoader__.load({
               h(ToneEditor, { tone: 'high', t, draft, update }),
               h(ToneEditor, { tone: 'low', t, draft, update }))),
 
+          h('section', { className: 'lt-card' },
+            h('div', { className: 'lt-card__head' },
+              h('div', null,
+                h('h3', { className: 'lt-card__title' }, t('iconsTitle')),
+                h('p', { className: 'lt-card__hint' }, t('iconsHint')))),
+            h('div', { className: 'lt-card__body' },
+              uploadError
+                ? h('div', { className: 'lt-error-text', role: 'alert' }, uploadError)
+                : null,
+              h('div', { className: 'lt-icon-row' },
+                h('span', { className: 'lt-icon-preview' },
+                  draft.highIconSvg
+                    ? h('img', { src: svgDataUrl(draft.highIconSvg), alt: '' })
+                    : h(TrendIcon, { up: true, size: 18 })),
+                h('div', { className: 'lt-icon-row__meta' },
+                  h('span', { className: 'lt-icon-row__title' }, t('highIcon')),
+                  h('span', { className: 'lt-icon-row__hint' }, draft.highIconSvg ? t('svgSpecColor') : t('iconsHint'))),
+                h('div', { className: 'lt-icon-row__actions' },
+                  h('button', {
+                    type: 'button',
+                    className: 'lt-btn',
+                    onClick: () => openUpload('high'),
+                  }, draft.highIconSvg ? t('replaceSvg') : t('importSvg')),
+                  draft.highIconSvg
+                    ? h('button', {
+                        type: 'button',
+                        className: 'lt-btn lt-btn--quiet lt-btn--danger',
+                        onClick: () => update({ highIconSvg: null }),
+                      }, t('removeIcon'))
+                    : null)),
+              h('div', { className: 'lt-icon-row' },
+                h('span', { className: 'lt-icon-preview' },
+                  draft.lowIconSvg
+                    ? h('img', { src: svgDataUrl(draft.lowIconSvg), alt: '' })
+                    : h(TrendIcon, { up: false, size: 18 })),
+                h('div', { className: 'lt-icon-row__meta' },
+                  h('span', { className: 'lt-icon-row__title' }, t('lowIcon')),
+                  h('span', { className: 'lt-icon-row__hint' }, draft.lowIconSvg ? t('svgSpecColor') : t('iconsHint'))),
+                h('div', { className: 'lt-icon-row__actions' },
+                  h('button', {
+                    type: 'button',
+                    className: 'lt-btn',
+                    onClick: () => openUpload('low'),
+                  }, draft.lowIconSvg ? t('replaceSvg') : t('importSvg')),
+                  draft.lowIconSvg
+                    ? h('button', {
+                        type: 'button',
+                        className: 'lt-btn lt-btn--quiet lt-btn--danger',
+                        onClick: () => update({ lowIconSvg: null }),
+                      }, t('removeIcon'))
+                    : null)))),
+
           h(ScheduleEditor, {
             t,
             draft,
@@ -1395,6 +1914,19 @@ window.__ModuleLoader__.load({
             setManualSource,
             invalid,
             locale,
+          }),
+
+          h(HolidayCard, {
+            t,
+            locale,
+            snapshot,
+            draft,
+            update,
+            month: calendarMonth,
+            setMonth: setCalendarMonth,
+            clock,
+            syncing,
+            manualSync,
           }),
 
           h('section', { className: 'lt-card' },
@@ -1420,6 +1952,22 @@ window.__ModuleLoader__.load({
                 ? null
                 : h('div', { className: 'lt-note' },
                     t('todayActive', { state: draft.todayMode === 'peak' ? t('peakLabel') : t('lowLabel') })))),
+
+          h('input', {
+            ref: fileInputRef,
+            type: 'file',
+            accept: '.svg,image/svg+xml',
+            style: { display: 'none' },
+            onChange: event => { void handleFilePicked(event) },
+          }),
+          uploadTone !== null
+            ? h(SvgSpecDialog, {
+                t,
+                dialogRef,
+                onCancel: closeUpload,
+                onContinue: continueUpload,
+              })
+            : null,
 
           h('footer', { className: 'lt-footer' },
             h('div', { className: 'lt-footer__state' },

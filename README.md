@@ -11,16 +11,20 @@
 - 选择黑色或白色时出现「跟随应用主题自动切换」开关，默认开启。
 - 显示位置可选：侧边栏用户名按钮上方，或会话标题栏右侧。
 - 设置页「梁时」提供 24 小时时间仪表盘、官方同步状态、手动峰谷时段、生效日期和今日临时覆盖。
-- 插件每次启动时在后台静默调用 `scripts/fetch_pricing.py`，从 DeepSeek API 定价页同步峰谷时间；失败时设置页以灰色文字提示，并可手动重试。
+- 自动同步中国法定节假日：通过中国政府网搜索接口定位当前年份和最新年份的放假通知，抓取通知页并解析假期日期；法定节假日全天按低峰处理。
+- 提供法定节假日手动日历：自动同步失败或非中国用户可切换到手动模式，逐日标记，或保留自动模式把手动日期作为补充。
+- 支持为高峰/低峰分别导入自定义 SVG 图标；导入前会弹出规范确认，确认后调用系统文件选择器。
+- 插件每次启动时在后台静默调用 `scripts/fetch_pricing.py` 与 `scripts/fetch_holidays.py`，分别同步峰谷时间和法定节假日；失败时设置页以灰色文字提示，并可手动重试。
 
 ## 数据与边界
 
 - 官方时段按北京时间（UTC+8）理解。当前官方规则：周一至周五 09:00–12:00、14:00–18:00 为高峰（不含中国法定节假日）。
-- 插件只自动同步时段，不内置中国法定节假日表；遇到节假日可在「今日覆盖」中把今天强制为低峰。
+- 节假日来源为中国政府网放假通知（`sousuo.www.gov.cn/search-gov/data`），手工日历可覆盖自动结果的空白。
 - 同步失败时优先沿用上一次成功缓存；没有缓存时使用内置默认时段，不影响徽标显示。
-- 设置保存在 `$DSH_HOME/plugin-data/dsh-liangtime/settings.json`，不使用会话日志。
+- 设置与图标保存在 `$DSH_HOME/plugin-data/dsh-liangtime/settings.json`，不使用会话日志。
 - 插件不读取会话内容，不调用模型，不发送遥测。
-- 依赖 Python 3（`python3` 或 `python`）执行定价页抓取；缺少 Python 时同步会失败并显示提示，也可以手动设置时段。
+- 依赖 Python 3（`python3` 或 `python`）执行定价页和节假日页抓取；缺少 Python 时同步会失败并显示提示，也可以手动设置时段与节假日。
+- 自定义 SVG 图标：≤128 KB、UTF-8、必须含 `viewBox`；禁止 script、事件属性、`foreignObject`、`image`、`use`、`a`、`style`、外部 `href` 和 `javascript:` 引用。图标按文件自身颜色渲染，文字颜色仍跟随设置。
 
 
 ## English
@@ -29,7 +33,8 @@
 
 - Configure the position, texts, colors, and 24-hour schedule in **Settings > LiangTime**.
 - Peak/off-peak times sync from the official DeepSeek API pricing page at every plugin startup; a failed sync is reported in gray on that page and can be retried manually.
+- Chinese public holidays sync automatically from the gov.cn holiday notices. A manual calendar is available for failed syncs and non-China users; in auto mode manual dates are additive, in manual mode only manual dates apply.
+- Import separate custom SVGs for peak and off-peak from Settings. The confirmation dialog lists the rules before the system file picker opens. Custom SVGs keep their own colors; badge text still follows the color setting.
 - Black/white colors offer a secondary "follow app theme" switch, on by default.
 - Manual intervals, active weekdays, and a one-day peak/off-peak override are available on the time dashboard.
-- Hours are interpreted in Asia/Shanghai. Chinese public holidays are not synced automatically; use the one-day override for a holiday.
-- Requires Python 3 (`python3` or `python`). The plugin never reads session content, calls a model, or sends telemetry.
+- Hours are interpreted in Asia/Shanghai. Requires Python 3 (`python3` or `python`). The plugin never reads session content, calls a model, or sends telemetry.

@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "dsh-liangTime",
-    "description": "Shows whether DeepSeek API pricing is currently in its peak or off-peak window. The badge sits above the sidebar account button or at the right of the titlebar, and its text and color are configurable in Settings > LiangTime. Peak/off-peak hours are synced from the DeepSeek API pricing page at startup; the settings page also offers a 24-hour timeline, manual intervals, and a one-day override. Hover or focus the badge for a countdown to the next peak/off-peak switch."
+    "description": "Shows whether DeepSeek API pricing is currently in its peak or off-peak window. The badge sits above the sidebar account button or at the right of the titlebar, and its text and color are configurable in Settings > LiangTime. Peak/off-peak hours are synced from the DeepSeek API pricing page at startup; the settings page also offers a 24-hour timeline, manual intervals, and a one-day override. Hover or focus the badge for a countdown to the next peak/off-peak switch. Chinese public holidays sync automatically, with a manual holiday calendar and custom SVG icon import."
   }
 }

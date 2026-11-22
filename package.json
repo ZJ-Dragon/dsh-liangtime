@@ -1,7 +1,7 @@
 {
   "name": "dsh-liangtime",
-  "version": "1.1.2",
-  "description": "Show DeepSeek peak/off-peak pricing time in the DSH sidebar or titlebar, with a hover countdown to the next switch.",
+  "version": "2.0.0",
+  "description": "Show DeepSeek peak/off-peak pricing in DSH, with holiday sync, manual calendars, and custom SVG icons.",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -19,7 +19,8 @@
     "index.js",
     "client.js",
     "lib",
-    "scripts",
+    "scripts/fetch_pricing.py",
+    "scripts/fetch_holidays.py",
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
