@@ -5,6 +5,7 @@
 ## 功能
 
 - 高峰显示上涨折线箭头，低峰显示下跌折线箭头；箭头无背景，图标与文字同色。
+- 鼠标悬停（或键盘聚焦）时展开倒计时：显示「距离梁文峰时间/梁文谷时间还有 xx小时 xx分」，颜色沿用当前峰谷配色。
 - 高峰/低峰文字、颜色分别可配；默认高峰绿、低峰红，默认文字为「梁文峰时间」和「梁文谷时间」。
 - 颜色可选黑、白、绿、红、黄、蓝、紫、橙，也可通过系统调色盘自定义。
 - 选择黑色或白色时出现「跟随应用主题自动切换」开关，默认开启。
@@ -24,7 +25,7 @@
 
 ## English
 
-`dsh-liangTime` shows whether DeepSeek API pricing is currently in its peak window, either above the sidebar account button or on the right of the session header. The peak state uses an upward SVG trend arrow and the off-peak state uses a downward one; both are transparent and inherit the configured color.
+`dsh-liangTime` shows whether DeepSeek API pricing is currently in its peak window, either above the sidebar account button or on the right of the session header. The peak state uses an upward SVG trend arrow and the off-peak state uses a downward one; both are transparent and inherit the configured color. Hover (or focus) the badge to expand a countdown to the next peak/off-peak switch, e.g. "2h 15m until LiangWenfeng time".
 
 - Configure the position, texts, colors, and 24-hour schedule in **Settings > LiangTime**.
 - Peak/off-peak times sync from the official DeepSeek API pricing page at every plugin startup; a failed sync is reported in gray on that page and can be retried manually.

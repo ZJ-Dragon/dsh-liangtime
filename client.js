@@ -107,6 +107,8 @@ window.__ModuleLoader__.load({
       ariaLow: '当前为 DeepSeek 低峰时段：{text}',
       noText: '不显示文字',
       badgeFallback: '内置默认时段',
+      countdown: '距离{state}还有{hours}小时{minutes}分',
+      noUpcoming: '暂无下一次切换',
       weekPrefix: '周',
       manualScheduleNote: '手动设置会在保存后替换官方时段。',
       officialCurrent: '官方时段：{days} {ranges}',
@@ -194,6 +196,8 @@ window.__ModuleLoader__.load({
       ariaLow: 'DeepSeek off-peak pricing now: {text}',
       noText: 'No text',
       badgeFallback: 'built-in fallback',
+      countdown: '{hours}h {minutes}m until {state}',
+      noUpcoming: 'No upcoming change',
       weekPrefix: '',
       manualScheduleNote: 'Manual windows replace the official schedule after saving.',
       officialCurrent: 'Official windows: {days} {ranges}',
@@ -204,10 +208,15 @@ window.__ModuleLoader__.load({
 .lt-badge{display:inline-flex;align-items:center;gap:6px;min-width:0;color:inherit;font:inherit;font-size:12px;font-weight:550;line-height:1;white-space:nowrap;user-select:none}
 .lt-badge--sidebar{box-sizing:border-box;width:100%;min-height:32px;padding:6px 10px;border-radius:7px}
 .lt-badge--sidebar.lt-badge--rail{width:36px;min-height:36px;padding:0;justify-content:center;border-radius:7px}
-.lt-badge--titlebar{box-sizing:border-box;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent}
+.lt-badge--titlebar{box-sizing:border-box;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;transition:max-width .16s ease}
 .lt-badge__text{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.lt-badge--titlebar .lt-badge__text{max-width:200px}
+.lt-badge--titlebar .lt-badge__text{max-width:200px;transition:max-width .16s ease}
+.lt-badge--titlebar.lt-badge--hovered{max-width:360px}
+.lt-badge--titlebar.lt-badge--hovered .lt-badge__text{max-width:320px}
+.lt-badge--hovered .lt-badge__text{animation:lt-hover-in .14s ease}
 .lt-badge--rail .lt-badge__text{display:none}
+@keyframes lt-hover-in{from{opacity:.55}to{opacity:1}}
+.lt-badge:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px;border-radius:999px}
 .lt-badge__icon{display:block;flex:none}
 .lt-page{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto;padding:4px 0 28px;display:flex;flex-direction:column;gap:14px;color:var(--dsw-alias-label-primary)}
 .lt-page__header{display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
@@ -309,7 +318,7 @@ window.__ModuleLoader__.load({
 .lt-error-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;font-size:13px;color:var(--dsw-alias-label-primary)}
 @keyframes lt-pulse{0%,100%{opacity:.35}50%{opacity:1}}
 @media (max-width:560px){.lt-grid{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
-@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}}
+@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge--titlebar .lt-badge__text{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
 `
 
     const WEEKDAY_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
@@ -358,14 +367,66 @@ window.__ModuleLoader__.load({
       return selected
     }
 
-    function computePeak(snapshot, date = new Date()) {
+    function peakAtInstant(snapshot, timestamp) {
       if (!snapshot) return false
-      const clock = beijingClock(date)
+      const clock = beijingClock(new Date(timestamp))
       const override = snapshot.config.todayOverride
       if (override && override.date === clock.date) return override.mode === 'peak'
       const schedule = snapshot.schedule
       if (!schedule.days.includes(clock.weekday)) return false
       return schedule.intervals.some(interval => clock.minutes >= interval.start && clock.minutes < interval.end)
+    }
+
+    function computePeak(snapshot, date = new Date()) {
+      return peakAtInstant(snapshot, date.getTime())
+    }
+
+    // Asia/Shanghai has no DST; the offset is fixed at UTC+8.
+    function beijingInstant(date, minutes) {
+      const [year, month, day] = date.split('-').map(Number)
+      return Date.UTC(year, month - 1, day) + (minutes - 8 * 60) * 60000
+    }
+
+    function nextStateTransition(snapshot, nowMs) {
+      if (!snapshot) return null
+      const currentPeak = peakAtInstant(snapshot, nowMs)
+      const candidates = []
+      const today = beijingClock(new Date(nowMs))
+      const override = snapshot.config.todayOverride
+      if (override && override.date === today.date) {
+        const nextDate = beijingClock(new Date(nowMs + 24 * 60 * 60000)).date
+        candidates.push(beijingInstant(nextDate, 0))
+      }
+      // One weekly cycle plus a margin catches the next active weekday.
+      for (let offset = 0; offset < 22; offset += 1) {
+        const day = beijingClock(new Date(nowMs + offset * 24 * 60 * 60000))
+        if (!snapshot.schedule.days.includes(day.weekday)) continue
+        for (const interval of snapshot.schedule.intervals) {
+          const start = beijingInstant(day.date, interval.start)
+          const end = beijingInstant(day.date, interval.end)
+          if (start > nowMs) candidates.push(start)
+          if (end > nowMs) candidates.push(end)
+        }
+      }
+      const unique = [...new Set(candidates)].sort((left, right) => left - right)
+      for (const instant of unique) {
+        const nextPeak = peakAtInstant(snapshot, instant)
+        if (nextPeak !== currentPeak) return { at: instant, nextPeak }
+      }
+      return null
+    }
+
+    function countdownLabel(snapshot, t, nowMs) {
+      const next = nextStateTransition(snapshot, nowMs)
+      if (next === null) return t('noUpcoming')
+      const totalMinutes = Math.max(1, Math.ceil((next.at - nowMs) / 60000))
+      const state = (next.nextPeak ? snapshot.config.highText : snapshot.config.lowText)
+        || t(next.nextPeak ? 'peak' : 'low')
+      return t('countdown', {
+        state,
+        hours: Math.floor(totalMinutes / 60),
+        minutes: totalMinutes % 60,
+      })
     }
 
     function formatTimestamp(value, locale) {
@@ -639,6 +700,7 @@ window.__ModuleLoader__.load({
       const storeState = useStore(api.store)
       const t = useT(api)
       const nowMs = useClock(15000)
+      const [hovered, setHovered] = React.useState(false)
       const snapshot = storeState.snapshot
       React.useEffect(() => {
         const phase = snapshot?.sync?.phase
@@ -667,18 +729,18 @@ window.__ModuleLoader__.load({
       if (!snapshot) return null
       if (snapshot.config.position !== variant) return null
       const peak = computePeak(snapshot, new Date(nowMs))
-      const text = peak ? snapshot.config.highText : snapshot.config.lowText
+      const rail = variant === 'sidebar' && wide === false
+      const baseText = peak ? snapshot.config.highText : snapshot.config.lowText
       const fallbackText = t(peak ? 'peak' : 'low')
+      const countdown = (hovered || rail) ? countdownLabel(snapshot, t, nowMs) : null
+      const text = hovered && countdown ? countdown : baseText
       const color = displayColor(snapshot.config, peak)
-      const clock = beijingClock(new Date(nowMs))
-      const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: text || fallbackText })
-      const title = `${aria} · ${t('clock', { time: clock.timeLabel })}${snapshot.schedule.source === 'fallback'
-        ? ` · ${t('badgeFallback')}`
-        : ''}`
+      const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
       const classes = [
         'lt-badge',
         `lt-badge--${variant}`,
-        variant === 'sidebar' && wide === false ? 'lt-badge--rail' : '',
+        rail ? 'lt-badge--rail' : '',
+        hovered ? 'lt-badge--hovered' : '',
       ].filter(Boolean).join(' ')
       return h(React.Fragment, null,
         h('style', { key: 'lt-style' }, CSS),
@@ -687,10 +749,16 @@ window.__ModuleLoader__.load({
           style: { color },
           role: 'status',
           'aria-live': 'polite',
-          'aria-label': aria,
-          title,
+          'aria-label': hovered && countdown ? `${aria} · ${countdown}` : aria,
+          title: rail && countdown ? `${aria} · ${countdown}` : undefined,
+          tabIndex: 0,
+          onMouseEnter: () => setHovered(true),
+          onMouseLeave: () => setHovered(false),
+          onFocus: () => setHovered(true),
+          onBlur: () => setHovered(false),
           'data-liangtime-badge': variant,
           'data-liangtime-state': peak ? 'peak' : 'low',
+          'data-liangtime-expanded': hovered ? 'true' : undefined,
         }, h(TrendIcon, { up: peak }), text
           ? h('span', { className: 'lt-badge__text' }, text)
           : null))
