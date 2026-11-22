@@ -1,0 +1,6 @@
+# dsh-liangTime: one Host row. The browser half is discovered through
+# package.json `dsh.client`; the Host half owns official-price sync and the
+# settings/state routes the browser reads.
+- insert:
+    - id: dsh-liangtime
+      name: 'dsh-liangtime'
