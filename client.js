@@ -136,7 +136,7 @@ window.__ModuleLoader__.load({
       widthSyncLabel: '每 30 分钟同步侧边栏宽度',
       widthSyncHint: '插件启动后立即读取一次，此后每 30 分钟重新测量，用来调整文字显示宽度。',
       adaptiveWrapLabel: '自适应换行',
-      adaptiveWrapHint: '若换行后末行只剩 1–2 个字符，则在前一行提前 2 个字符换行，避免孤字。',
+      adaptiveWrapHint: '若换行后末行只剩 1–2 个字符，则在前一行提前 2 个字符换行；若时间处被截断，则提前到「还有」后换行，让时间独立一行。',
       iconsTitle: '自定义图标',
       iconsHint: '可选：为高峰、低峰分别导入 SVG。自定义图标按文件自身颜色渲染；徽标文字仍使用设置颜色。',
       highIcon: '高峰图标',
@@ -275,7 +275,7 @@ window.__ModuleLoader__.load({
       widthSyncLabel: 'Sync sidebar width every 30 minutes',
       widthSyncHint: 'Measures once at startup, then every 30 minutes, and uses the width to adjust the text area.',
       adaptiveWrapLabel: 'Adaptive wrapping',
-      adaptiveWrapHint: 'If the last wrapped line would contain only 1–2 characters, break 2 characters earlier on the previous line.',
+      adaptiveWrapHint: 'Break 2 characters earlier when the last line would have only 1–2 characters; if the duration would be split, start it on its own line after “还有”.',
       iconsTitle: 'Custom icons',
       iconsHint: 'Optional: import separate SVGs for peak and off-peak. Custom icons keep their own colors; badge text still follows the color setting.',
       highIcon: 'Peak icon',
@@ -938,8 +938,7 @@ window.__ModuleLoader__.load({
       return fontSize * 0.5
     }
 
-    function balancedTextLines(text, maxWidth, fontSize = 12) {
-      if (maxWidth <= 0 || typeof text !== 'string' || text.length === 0) return [text]
+    function wrapEstimatedLines(text, maxWidth, fontSize = 12) {
       const lines = []
       let current = ''
       let width = 0
@@ -954,10 +953,41 @@ window.__ModuleLoader__.load({
         width += characterWidth
       }
       if (current.length > 0) lines.push(current)
+      return lines
+    }
+
+    function balancedTextLines(text, maxWidth, fontSize = 12) {
+      if (maxWidth <= 0 || typeof text !== 'string' || text.length === 0) return [text]
+      const characters = Array.from(text)
+      let lines = wrapEstimatedLines(text, maxWidth, fontSize)
+      if (lines.length > 1) {
+        // If wrapping cuts into the countdown duration ("还有23小时59分"),
+        // start the duration on its own line instead of splitting digits/units.
+        let markerEnd = -1
+        for (let index = 0; index < characters.length - 1; index += 1) {
+          if (characters[index] === '还' && characters[index + 1] === '有') markerEnd = index + 2
+        }
+        if (markerEnd >= 0 && markerEnd < characters.length) {
+          let boundary = 0
+          let cutsDuration = false
+          for (let index = 0; index < lines.length - 1; index += 1) {
+            boundary += Array.from(lines[index]).length
+            if (boundary > markerEnd && boundary < characters.length) {
+              cutsDuration = true
+              break
+            }
+          }
+          if (cutsDuration) {
+            const head = characters.slice(0, markerEnd).join('')
+            const duration = characters.slice(markerEnd).join('')
+            lines = [...wrapEstimatedLines(head, maxWidth, fontSize), ...wrapEstimatedLines(duration, maxWidth, fontSize)]
+          }
+        }
+      }
       if (lines.length > 1) {
         const last = lines[lines.length - 1]
-        if ([...last].length <= 2) {
-          const previous = [...lines[lines.length - 2]]
+        if (Array.from(last).length <= 2) {
+          const previous = Array.from(lines[lines.length - 2])
           if (previous.length > 2) {
             const moved = previous.splice(-2).join('')
             lines[lines.length - 2] = previous.join('')
