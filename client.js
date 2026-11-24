@@ -313,8 +313,9 @@ window.__ModuleLoader__.load({
 .lt-badge--titlebar .lt-badge__text{max-width:none;flex:none}
 .lt-badge--titlebar.lt-badge--hovered{max-width:min(1000px,calc(100vw - 120px))}
 .lt-badge--wrap{align-items:flex-start;white-space:normal}
-.lt-badge--sidebar .lt-badge__text{flex:1 1 auto;min-width:0}
-.lt-badge--wrap .lt-badge__text{flex:1 1 auto;white-space:normal;overflow-wrap:anywhere;text-overflow:clip;line-height:1.35;padding-block:1px}
+.lt-badge--sidebar .lt-badge__text{flex:0 1 auto;min-width:0}
+.lt-badge--wrap .lt-badge__text{flex:0 1 auto;white-space:normal;overflow-wrap:anywhere;text-overflow:clip;line-height:1.35;padding-block:1px}
+.lt-badge--fixed-lines .lt-badge__text{white-space:nowrap}
 .lt-badge--wrap .lt-badge__icon{margin-top:1px}
 .lt-badge__sizer{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:max-content;max-width:none;font:inherit;font-size:12px;font-weight:550;line-height:1}
 .lt-badge--sidebar.lt-badge--hovered .lt-badge__text{animation:none}
@@ -1097,17 +1098,17 @@ window.__ModuleLoader__.load({
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
       const wrap = variant === 'sidebar' && (hovered || showCountdown) && !rail
-      const displayWidth = variant === 'sidebar'
-        && (snapshot.config.sidebarWidthSync ?? true)
-        && sidebarTextWidth !== null
-        && targetWidth !== null
-        ? Math.min(targetWidth, sidebarTextWidth)
-        : targetWidth
       const adaptiveLines = wrap
         && (snapshot.config.adaptiveWrap ?? true)
         && sidebarTextWidth !== null
         ? balancedTextLines(text, Math.max(24, sidebarTextWidth - 2))
         : null
+      const fixedLines = adaptiveLines !== null
+      const displayWidth = variant === 'sidebar'
+        && sidebarTextWidth !== null
+        && targetWidth !== null
+        ? Math.min(targetWidth, sidebarTextWidth)
+        : targetWidth
       const renderedText = adaptiveLines !== null && adaptiveLines.length > 1
         ? adaptiveLines.flatMap((line, index) => index === 0 ? [line] : [h('br', { key: `lt-br-${index}` }), line])
         : text
@@ -1117,6 +1118,7 @@ window.__ModuleLoader__.load({
         rail ? 'lt-badge--rail' : '',
         hovered ? 'lt-badge--hovered' : '',
         wrap ? 'lt-badge--wrap' : '',
+        fixedLines ? 'lt-badge--fixed-lines' : '',
       ].filter(Boolean).join(' ')
       const badgeStyle = { color }
       if (variant === 'titlebar' && (hovered || showCountdown) && targetWidth !== null && targetWidth > 0) {
@@ -1206,7 +1208,7 @@ window.__ModuleLoader__.load({
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: variant !== 'titlebar' || displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
+              style: (!fixedLines && variant !== 'titlebar') || displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
             }, renderedText)
           : null))
     }

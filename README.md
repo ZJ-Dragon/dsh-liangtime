@@ -12,7 +12,7 @@
 - 显示位置可选：侧边栏用户名按钮上方，或会话标题栏右侧。
 - 设置页「梁时」提供 24 小时时间仪表盘、官方同步状态、手动峰谷时段、生效日期和今日临时覆盖。
 - 侧边栏宽度同步：启动时读取一次，此后每 30 分钟重新读取并调整文字显示宽度；可在设置中关闭。
-- 侧边栏展开动画固定文字排版宽度、只过渡高度，避免动画过程中重复换行。
+- 侧边栏展开动画使用预排好的固定行，宽度和高度同步过渡；文字不会在动画过程中重新换行。
 - 自适应换行：估算换行后的末行长度，若只剩 1–2 个字符，则在前一行提前 2 个字符换行；若换行落在倒计时的时间部分，则提前到「还有」后换行，让时间独立一行；可在设置中关闭。
 - 自动同步中国法定节假日：通过中国政府网搜索接口定位当前年份和最新年份的放假通知，抓取通知页并解析假期日期；法定节假日全天按低峰处理。
 - 提供法定节假日手动日历：自动同步失败或非中国用户可切换到手动模式，逐日标记，或保留自动模式把手动日期作为补充。
@@ -40,6 +40,6 @@
 - Import separate custom SVGs for peak and off-peak from Settings. The confirmation dialog lists the rules before the system file picker opens. Custom SVGs keep their own colors; badge text still follows the color setting.
 - Black/white colors offer a secondary "follow app theme" switch, on by default.
 - Manual intervals, active weekdays, and a one-day peak/off-peak override are available on the time dashboard.
-- Sidebar width sync reads the sidebar once at startup and every 30 minutes, then adjusts the text area; it can be disabled in Settings. Sidebar expansion animates height at a fixed text width, so wrapping cannot change mid-animation.
+- Sidebar width sync reads the sidebar once at startup and every 30 minutes, then adjusts the text area; it can be disabled in Settings. Sidebar expansion pre-lays fixed lines and animates width and height together, so wrapping cannot change mid-animation.
 - Adaptive wrapping estimates the last line and breaks 2 characters earlier on the previous line when only 1–2 characters would remain. If a break would split the countdown duration, the duration starts on its own line after “还有”; it can be disabled in Settings.
 - Hours are interpreted in Asia/Shanghai. Requires Python 3 (`python3` or `python`). The plugin never reads session content, calls a model, or sends telemetry.
