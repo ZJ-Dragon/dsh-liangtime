@@ -306,16 +306,18 @@ window.__ModuleLoader__.load({
 
     const CSS = `
 .lt-badge{position:relative;display:inline-flex;align-items:center;gap:6px;min-width:0;color:inherit;font:inherit;font-size:12px;font-weight:550;line-height:1;white-space:nowrap;user-select:none}
-.lt-badge--sidebar{box-sizing:border-box;width:100%;min-height:32px;padding:6px 10px;border-radius:7px}
-.lt-badge--sidebar.lt-badge--rail{width:36px;min-height:36px;padding:0;justify-content:center;border-radius:7px}
+.lt-badge--sidebar{box-sizing:border-box;width:100%;height:32px;min-height:32px;padding:6px 10px;border-radius:7px;overflow:hidden;transition:height .22s cubic-bezier(.22,1,.36,1)}
+.lt-badge--sidebar.lt-badge--rail{width:36px;height:36px;min-height:36px;padding:0;justify-content:center;border-radius:7px}
 .lt-badge--titlebar{box-sizing:border-box;flex:none;max-width:240px;height:26px;padding:0 9px;border:1px solid var(--dsw-alias-border-l1);border-radius:999px;background:transparent;transition:max-width .22s cubic-bezier(.22,1,.36,1)}
 .lt-badge__text{min-width:0;overflow:hidden;text-overflow:ellipsis;transition:width .22s cubic-bezier(.22,1,.36,1)}
 .lt-badge--titlebar .lt-badge__text{max-width:none;flex:none}
 .lt-badge--titlebar.lt-badge--hovered{max-width:min(1000px,calc(100vw - 120px))}
 .lt-badge--wrap{align-items:flex-start;white-space:normal}
-.lt-badge--wrap .lt-badge__text{flex:0 1 auto;white-space:normal;overflow-wrap:anywhere;text-overflow:clip;line-height:1.35;padding-block:1px}
+.lt-badge--sidebar .lt-badge__text{flex:1 1 auto;min-width:0}
+.lt-badge--wrap .lt-badge__text{flex:1 1 auto;white-space:normal;overflow-wrap:anywhere;text-overflow:clip;line-height:1.35;padding-block:1px}
 .lt-badge--wrap .lt-badge__icon{margin-top:1px}
 .lt-badge__sizer{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:max-content;max-width:none;font:inherit;font-size:12px;font-weight:550;line-height:1}
+.lt-badge--sidebar.lt-badge--hovered .lt-badge__text{animation:none}
 .lt-badge--hovered .lt-badge__text{animation:lt-hover-in .14s ease}
 .lt-badge--rail .lt-badge__text{display:none}
 @keyframes lt-hover-in{from{opacity:.55}to{opacity:1}}
@@ -457,7 +459,7 @@ window.__ModuleLoader__.load({
 .lt-dialog__list{margin:0 0 18px;padding-inline-start:18px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary)}
 .lt-dialog__actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 @media (max-width:560px){.lt-grid{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
-@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge__text{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
+@media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge__text{transition:none}.lt-badge--sidebar{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
 `
 
     const WEEKDAY_KEYS = ['daySun', 'dayMon', 'dayTue', 'dayWed', 'dayThu', 'dayFri', 'daySat']
@@ -1094,7 +1096,7 @@ window.__ModuleLoader__.load({
         : null
       const color = displayColor(snapshot.config, peak)
       const aria = t(peak ? 'ariaPeak' : 'ariaLow', { text: baseText || fallbackText })
-      const wrap = variant === 'sidebar' && hovered && !rail
+      const wrap = variant === 'sidebar' && (hovered || showCountdown) && !rail
       const displayWidth = variant === 'sidebar'
         && (snapshot.config.sidebarWidthSync ?? true)
         && sidebarTextWidth !== null
@@ -1122,6 +1124,17 @@ window.__ModuleLoader__.load({
         // max-width here can round below the text width and clip the last
         // character or two on some fonts.
         badgeStyle.maxWidth = 'none'
+      }
+      if (variant === 'sidebar' && !rail && sidebarTextWidth !== null) {
+        // The sidebar width is fixed by the shell, so animate its height
+        // instead of the text width. Text stays laid out at a fixed width and
+        // cannot reflow mid-transition.
+        const measuredLines = adaptiveLines
+          ?? wrapEstimatedLines(countdown, Math.max(24, sidebarTextWidth - 2))
+        const expandedHeight = wrap
+          ? Math.max(32, Math.ceil(measuredLines.length * 12 * 1.35 + 16))
+          : 32
+        badgeStyle.height = `${expandedHeight}px`
       }
       const clearHoverTimer = () => {
         if (hoverTimer.current !== null) {
@@ -1193,7 +1206,7 @@ window.__ModuleLoader__.load({
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
+              style: variant !== 'titlebar' || displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
             }, renderedText)
           : null))
     }
