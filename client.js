@@ -1208,7 +1208,7 @@ window.__ModuleLoader__.load({
         text
           ? h('span', {
               className: 'lt-badge__text',
-              style: (!fixedLines && variant !== 'titlebar') || displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
+              style: displayWidth === null || displayWidth <= 0 ? undefined : { width: `${displayWidth}px` },
             }, renderedText)
           : null))
     }
