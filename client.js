@@ -15,6 +15,8 @@ window.__ModuleLoader__.load({
     const API_STATE = 'api/liangtime.state'
     const API_SETTINGS = 'api/liangtime.settings'
     const API_SYNC = 'api/liangtime.sync'
+    const API_UPDATE_CHECK = 'api/liangtime.update-check'
+    const API_UPDATE_INSTALL = 'api/liangtime.update-install'
     const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]
     const PRESET_COLORS = ['#000000', '#ffffff', '#16a34a', '#dc2626', '#eab308', '#2563eb', '#9333ea', '#ea580c']
     const WEEKDAY_INDEX = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
@@ -27,8 +29,8 @@ window.__ModuleLoader__.load({
     })
 
     const zh = {
-      sectionLabel: '梁时',
-      pageTitle: '梁时',
+      sectionLabel: '梁辰',
+      pageTitle: '梁辰',
       pageIntro: '提示当前是否处于 DeepSeek API 的高峰计价时段。所有时段均按北京时间计算。',
       currentState: '当前状态',
       peak: '高峰',
@@ -131,6 +133,29 @@ window.__ModuleLoader__.load({
       holidayToday: '今天',
       holidayBadge: '法定节假日',
       holidaySourceLink: '数据来源：中国政府网节假日安排',
+      updateTitle: '插件更新',
+      updateHint: '启动时依次尝试 npm、npmmirror、jsDelivr 三个发布渠道，任一可用即采用。',
+      updateModeSilentLabel: '自动更新（静默）',
+      updateModeSilentHint: '启动时自动检查并安装新版本，不额外打扰。',
+      updateModeNotifyLabel: '自动更新（红点提示）',
+      updateModeNotifyHint: '启动时自动检查；有更新时在图标左上角显示红点，由你点击安装。',
+      updateModeManualLabel: '手动更新',
+      updateModeManualHint: '不自动检查，只在设置页手动检查和安装。',
+      updateCheck: '检查更新',
+      updateInstall: '安装更新',
+      updateChecking: '正在检查…',
+      updateInstalling: '正在安装…',
+      updateCurrent: '当前版本 {version}',
+      updateLatest: '最新版本 {version}（{channel}）',
+      updateIdle: '尚未检查更新',
+      updateUpToDate: '已是最新版本',
+      updateAvailable: '发现新版本，可立即安装。',
+      updateBlocked: '发现新版本，但当前安装方式不支持自动更新。',
+      updateError: '更新检查失败：{error}',
+      updateInstalled: '更新已安装，插件将重新加载。',
+      updateRestart: '更新已安装，需要重启 DSH。',
+      updateLastCheck: '上次检查：{time}',
+      updateRedDot: '有可用更新',
       sidebarLayoutTitle: '侧边栏布局',
       sidebarLayoutHint: '以下选项只影响侧边栏位置的徽标，不影响标题栏。',
       widthSyncLabel: '每 30 分钟同步侧边栏宽度',
@@ -166,8 +191,8 @@ window.__ModuleLoader__.load({
     }
 
     const en = {
-      sectionLabel: 'LiangTime',
-      pageTitle: 'LiangTime',
+      sectionLabel: '梁辰',
+      pageTitle: '梁辰',
       pageIntro: 'Shows whether DeepSeek API pricing is currently in its peak window. All times use Beijing time (UTC+8).',
       currentState: 'Current state',
       peak: 'Peak',
@@ -270,6 +295,29 @@ window.__ModuleLoader__.load({
       holidayToday: 'Today',
       holidayBadge: 'Public holiday',
       holidaySourceLink: 'Source: gov.cn holiday notices',
+      updateTitle: 'Plugin update',
+      updateHint: 'Tries npm, npmmirror, and jsDelivr in order at startup and uses the first channel that answers.',
+      updateModeSilentLabel: 'Automatic (silent)',
+      updateModeSilentHint: 'Checks and installs a new version at startup without interrupting you.',
+      updateModeNotifyLabel: 'Automatic (badge dot)',
+      updateModeNotifyHint: 'Checks at startup and marks the icon with a red dot when an update is available; you choose when to install.',
+      updateModeManualLabel: 'Manual',
+      updateModeManualHint: 'Never checks automatically; check and install from Settings only.',
+      updateCheck: 'Check for updates',
+      updateInstall: 'Install update',
+      updateChecking: 'Checking…',
+      updateInstalling: 'Installing…',
+      updateCurrent: 'Current version {version}',
+      updateLatest: 'Latest version {version} ({channel})',
+      updateIdle: 'Not checked yet',
+      updateUpToDate: 'Up to date',
+      updateAvailable: 'A new version is available and ready to install.',
+      updateBlocked: 'A newer version exists, but this installation cannot update itself.',
+      updateError: 'Update check failed: {error}',
+      updateInstalled: 'Update installed. The plugin will reload.',
+      updateRestart: 'Update installed. Restart DSH to load it.',
+      updateLastCheck: 'Last checked: {time}',
+      updateRedDot: 'Update available',
       sidebarLayoutTitle: 'Sidebar layout',
       sidebarLayoutHint: 'These options affect the sidebar badge only, not the titlebar.',
       widthSyncLabel: 'Sync sidebar width every 30 minutes',
@@ -324,6 +372,8 @@ window.__ModuleLoader__.load({
 @keyframes lt-hover-in{from{opacity:.55}to{opacity:1}}
 .lt-badge:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:2px;border-radius:999px}
 .lt-badge__icon{display:block;flex:none}
+.lt-badge__icon-wrap{position:relative;display:flex;align-items:center;justify-content:center;flex:none}
+.lt-update-dot{position:absolute;top:-3px;left:-3px;width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-error-primary);box-shadow:0 0 0 1px var(--dsw-alias-bg-base);pointer-events:none}
 .lt-page{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto;padding:4px 0 28px;display:flex;flex-direction:column;gap:14px;color:var(--dsw-alias-label-primary)}
 .lt-page__header{display:flex;flex-direction:column;gap:6px;padding:2px 2px 4px}
 .lt-page__title{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
@@ -459,7 +509,14 @@ window.__ModuleLoader__.load({
 .lt-dialog__intro{margin:0 0 12px;font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary)}
 .lt-dialog__list{margin:0 0 18px;padding-inline-start:18px;display:flex;flex-direction:column;gap:7px;font-size:12px;line-height:1.55;color:var(--dsw-alias-label-secondary)}
 .lt-dialog__actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-@media (max-width:560px){.lt-grid{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
+.lt-update-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.lt-update-panel{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--dsw-alias-border-l1);border-radius:9px;background:var(--dsw-alias-bg-base)}
+.lt-update-panel__row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lt-update-panel__versions{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary)}
+.lt-update-panel__status{font-size:12px;line-height:1.5;color:var(--dsw-alias-label-secondary)}
+.lt-update-panel__status--error{color:var(--dsw-alias-label-secondary);opacity:.9}
+.lt-update-panel__actions{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:560px){.lt-grid,.lt-update-modes{grid-template-columns:1fr}.lt-card{padding:14px}.lt-page{padding-bottom:20px}.lt-interval__actions{margin-inline-start:0}.lt-footer{width:100%;bottom:8px;border-radius:14px;padding:9px 11px 9px 14px}}
 @media (prefers-reduced-motion:reduce){.lt-loading__dot{animation:none}.lt-switch::after{transition:none}.lt-badge--titlebar,.lt-badge__text{transition:none}.lt-badge--sidebar{transition:none}.lt-badge--hovered .lt-badge__text{animation:none}}
 `
 
@@ -750,6 +807,7 @@ window.__ModuleLoader__.load({
         lowIconSvg: snapshot.config.lowIconSvg ?? null,
         sidebarWidthSync: snapshot.config.sidebarWidthSync ?? true,
         adaptiveWrap: snapshot.config.adaptiveWrap ?? true,
+        updateMode: snapshot.config.updateMode ?? 'notify',
       }
     }
 
@@ -773,6 +831,7 @@ window.__ModuleLoader__.load({
         lowIconSvg: draft.lowIconSvg,
         sidebarWidthSync: draft.sidebarWidthSync,
         adaptiveWrap: draft.adaptiveWrap,
+        updateMode: draft.updateMode,
       })
     }
 
@@ -878,6 +937,14 @@ window.__ModuleLoader__.load({
         },
         async sync() {
           const snapshot = await request(API_SYNC, { method: 'POST', body: '{}' })
+          return accept(snapshot)
+        },
+        async checkUpdate() {
+          const snapshot = await request(API_UPDATE_CHECK, { method: 'POST', body: '{}' })
+          return accept(snapshot)
+        },
+        async installUpdate() {
+          const snapshot = await request(API_UPDATE_INSTALL, { method: 'POST', body: '{}' })
           return accept(snapshot)
         },
       }
@@ -1047,6 +1114,14 @@ window.__ModuleLoader__.load({
         return () => window.clearInterval(timer)
       }, [api, snapshot, storeState.error])
       React.useEffect(() => {
+        const phase = snapshot?.update?.phase
+        if (phase !== 'checking' && phase !== 'installing') return undefined
+        const timer = window.setInterval(() => {
+          void api.store.refresh().catch(() => {})
+        }, 1500)
+        return () => window.clearInterval(timer)
+      }, [api, snapshot?.update?.phase])
+      React.useEffect(() => {
         // A Host restart (including HMR of the linked Host half) reuses the
         // page and its client module; a slow poll lets it pick up the new
         // instance id and revision sequence.
@@ -1202,7 +1277,15 @@ window.__ModuleLoader__.load({
           'data-liangtime-state': peak ? 'peak' : 'low',
           'data-liangtime-expanded': hovered ? 'true' : undefined,
         },
-        badgeIcon(snapshot.config, peak),
+        h('span', { className: 'lt-badge__icon-wrap' },
+          badgeIcon(snapshot.config, peak),
+          snapshot.update?.available && snapshot.config.updateMode === 'notify'
+            ? h('span', {
+                className: 'lt-update-dot',
+                title: t('updateRedDot'),
+                'aria-label': t('updateRedDot'),
+              })
+            : null),
         h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: baseSizerRef }, baseText),
         h('span', { className: 'lt-badge__sizer', 'aria-hidden': 'true', ref: countdownSizerRef }, countdown),
         text
@@ -1676,6 +1759,8 @@ window.__ModuleLoader__.load({
       const [saved, setSaved] = React.useState(false)
       const [saveError, setSaveError] = React.useState(null)
       const [syncError, setSyncError] = React.useState(null)
+      const [updateBusy, setUpdateBusy] = React.useState(null)
+      const [updateActionError, setUpdateActionError] = React.useState(null)
       const [uploadTone, setUploadTone] = React.useState(null)
       const [uploadError, setUploadError] = React.useState(null)
       const [calendarMonth, setCalendarMonth] = React.useState(() => beijingClock(new Date()).date.slice(0, 7))
@@ -1717,6 +1802,15 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         if (snapshot?.sync?.phase === 'ok') setSyncError(null)
       }, [snapshot?.sync?.phase])
+
+      React.useEffect(() => {
+        const phase = snapshot?.update?.phase
+        if (phase !== 'checking' && phase !== 'installing') return undefined
+        const timer = window.setInterval(() => {
+          void api.store.refresh().catch(() => {})
+        }, 1500)
+        return () => window.clearInterval(timer)
+      }, [api, snapshot?.update?.phase])
 
       React.useEffect(() => {
         const dialog = dialogRef.current
@@ -1791,6 +1885,29 @@ window.__ModuleLoader__.load({
       const statusText = peak ? draft.highText : draft.lowText
       const official = snapshot.official
       const locale = api.ctx.locale.getLocale()
+      const updateState = snapshot.update ?? {}
+      const updatePhase = updateBusy === 'check'
+        ? 'checking'
+        : updateBusy === 'install'
+          ? 'installing'
+          : updateState.phase
+      const updateError = updateActionError ?? updateState.error ?? null
+      const updateChannel = typeof updateState.channel === 'string' ? updateState.channel : '—'
+      let updateStatus = null
+      if (updateBusy === 'check' || updatePhase === 'checking') updateStatus = t('updateChecking')
+      else if (updateBusy === 'install' || updatePhase === 'installing') updateStatus = t('updateInstalling')
+      else if (updatePhase === 'available') updateStatus = t('updateAvailable')
+      else if (updatePhase === 'blocked') updateStatus = updateError === null
+        ? t('updateBlocked')
+        : `${t('updateBlocked')} ${updateError}`
+      else if (updatePhase === 'installed') updateStatus = t('updateInstalled')
+      else if (updatePhase === 'restart-required') updateStatus = t('updateRestart')
+      else if (updatePhase === 'error') updateStatus = t('updateError', { error: updateState.error ?? 'unknown error' })
+      else if (updateError !== null) updateStatus = t('updateError', { error: updateError })
+      else if (updateState.lastCheck) updateStatus = t('updateUpToDate')
+      else updateStatus = t('updateIdle')
+      const updateStatusIsError = updateError !== null || updatePhase === 'error' || updatePhase === 'blocked'
+      const canInstallUpdate = updateState.canInstall === true && updateState.available === true
 
       function buildPatch(source) {
         const currentDate = beijingClock(new Date()).date
@@ -1815,6 +1932,7 @@ window.__ModuleLoader__.load({
           lowIconSvg: source.lowIconSvg,
           sidebarWidthSync: source.sidebarWidthSync,
           adaptiveWrap: source.adaptiveWrap,
+          updateMode: source.updateMode,
         }
       }
 
@@ -1885,6 +2003,32 @@ window.__ModuleLoader__.load({
           setSyncError(error instanceof Error ? error.message : String(error))
         } finally {
           setSyncing(false)
+        }
+      }
+
+      const checkUpdates = async () => {
+        if (updateBusy !== null) return
+        setUpdateBusy('check')
+        setUpdateActionError(null)
+        try {
+          await api.store.checkUpdate()
+        } catch (error) {
+          setUpdateActionError(error instanceof Error ? error.message : String(error))
+        } finally {
+          setUpdateBusy(null)
+        }
+      }
+
+      const installUpdate = async () => {
+        if (updateBusy !== null) return
+        setUpdateBusy('install')
+        setUpdateActionError(null)
+        try {
+          await api.store.installUpdate()
+        } catch (error) {
+          setUpdateActionError(error instanceof Error ? error.message : String(error))
+        } finally {
+          setUpdateBusy(null)
         }
       }
 
@@ -2029,6 +2173,58 @@ window.__ModuleLoader__.load({
                 checked: draft.adaptiveWrap,
                 onChange: value => update({ adaptiveWrap: value }),
               }))),
+
+          h('section', { className: 'lt-card' },
+            h('div', { className: 'lt-card__head' },
+              h('div', null,
+                h('h3', { className: 'lt-card__title' }, t('updateTitle')),
+                h('p', { className: 'lt-card__hint' }, t('updateHint')))),
+            h('div', { className: 'lt-card__body' },
+              h('div', { className: 'lt-update-modes', role: 'group', 'aria-label': t('updateTitle') },
+                [
+                  ['silent', t('updateModeSilentLabel'), t('updateModeSilentHint')],
+                  ['notify', t('updateModeNotifyLabel'), t('updateModeNotifyHint')],
+                  ['manual', t('updateModeManualLabel'), t('updateModeManualHint')],
+                ].map(([value, label, hint]) => h('button', {
+                  key: value,
+                  type: 'button',
+                  className: 'lt-choice',
+                  'aria-pressed': draft.updateMode === value,
+                  onClick: () => update({ updateMode: value }),
+                }, h('span', { className: 'lt-choice__mark' }),
+                  h('span', { className: 'lt-choice__text' },
+                    h('span', { className: 'lt-choice__label' }, label),
+                    h('span', { className: 'lt-choice__hint' }, hint))))),
+              h('div', { className: 'lt-update-panel' },
+                h('div', { className: 'lt-update-panel__row' },
+                  h('div', { className: 'lt-update-panel__versions' },
+                    h('span', null, t('updateCurrent', { version: updateState.currentVersion ?? '—' })),
+                    updateState.latestVersion
+                      ? h('span', null, t('updateLatest', { version: updateState.latestVersion, channel: updateChannel }))
+                      : null,
+                    updateState.lastCheck
+                      ? h('span', null, t('updateLastCheck', { time: formatTimestamp(updateState.lastCheck, locale) }))
+                      : null),
+                  h('div', { className: 'lt-update-panel__actions' },
+                    h('button', {
+                      type: 'button',
+                      className: 'lt-btn',
+                      disabled: updateBusy !== null || updatePhase === 'checking' || updatePhase === 'installing',
+                      onClick: () => { void checkUpdates() },
+                    }, updateBusy === 'check' || updatePhase === 'checking' ? t('updateChecking') : t('updateCheck')),
+                    canInstallUpdate
+                      ? h('button', {
+                          type: 'button',
+                          className: 'lt-btn lt-btn--primary',
+                          disabled: updateBusy !== null || updatePhase === 'installing',
+                          onClick: () => { void installUpdate() },
+                        }, updateBusy === 'install' || updatePhase === 'installing' ? t('updateInstalling') : t('updateInstall'))
+                      : null)),
+                h('div', {
+                  className: updateStatusIsError
+                    ? 'lt-update-panel__status lt-update-panel__status--error'
+                    : 'lt-update-panel__status',
+                }, updateStatus)))),
 
           h('section', { className: 'lt-card' },
             h('div', { className: 'lt-card__head' },

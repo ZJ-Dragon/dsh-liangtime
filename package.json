@@ -1,6 +1,6 @@
 {
   "name": "dsh-liangtime",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "description": "Show DeepSeek peak/off-peak pricing in DSH, with holiday sync, manual calendars, custom SVG icons, and adaptive sidebar layout.",
   "keywords": [
     "dsh",

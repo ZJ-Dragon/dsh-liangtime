@@ -1,13 +1,14 @@
 /**
  * dsh-liangTime Host half.
  *
- * Owns the startup pricing sync, persisted preferences, and the two
- * authenticated JSON routes the browser half reads. No model-facing tools or
- * session data are involved.
+ * Owns startup pricing/holiday sync, persisted preferences, update checks,
+ * and the authenticated JSON routes the browser half reads. No model-facing
+ * tools or session data are involved.
  */
 
 import { randomUUID } from 'node:crypto'
 import { execFile } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
@@ -25,8 +26,39 @@ const DEFAULT_HOLIDAY_SOURCE = 'https://sousuo.www.gov.cn/search-gov/data'
 const STATE_PATH = '/api/liangtime.state'
 const SETTINGS_PATH = '/api/liangtime.settings'
 const SYNC_PATH = '/api/liangtime.sync'
+const UPDATE_CHECK_PATH = '/api/liangtime.update-check'
+const UPDATE_INSTALL_PATH = '/api/liangtime.update-install'
 const MAX_BODY_BYTES = 1_500_000
 const SYNC_TIMEOUT_MS = 28_000
+const PACKAGE_NAME = 'dsh-liangtime'
+const CURRENT_VERSION = (() => {
+  try {
+    const manifest = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'))
+    return typeof manifest.version === 'string' ? manifest.version : '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+})()
+const UPDATE_TIMEOUT_MS = 8_000
+// Ordered fallbacks. The first answer wins; every channel is tried before the
+// settings page reports that update checking is unavailable.
+const UPDATE_CHANNELS = Object.freeze([
+  {
+    id: 'npm',
+    url: 'https://registry.npmjs.org/dsh-liangtime/latest',
+    registry: 'https://registry.npmjs.org/',
+  },
+  {
+    id: 'npmmirror',
+    url: 'https://registry.npmmirror.com/dsh-liangtime/latest',
+    registry: 'https://registry.npmmirror.com/',
+  },
+  {
+    id: 'jsdelivr',
+    url: 'https://cdn.jsdelivr.net/npm/dsh-liangtime@latest/package.json',
+    registry: null,
+  },
+])
 
 function noStoreJson(value, status = 200) {
   return Response.json(value, {
@@ -56,6 +88,42 @@ async function readJson(request) {
     return { ok: true, value: JSON.parse(text) }
   } catch {
     return { ok: false, response: failure('request body is not valid JSON', 400) }
+  }
+}
+
+function compareVersions(left, right) {
+  const parse = value => String(value)
+    .replace(/^v/i, '')
+    .split('-')[0]
+    .split('.')
+    .slice(0, 3)
+    .map(part => Number.parseInt(part, 10) || 0)
+  const a = parse(left)
+  const b = parse(right)
+  for (let index = 0; index < 3; index += 1) {
+    if (a[index] !== b[index]) return a[index] - b[index]
+  }
+  return 0
+}
+
+async function fetchJson(url, signal) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), UPDATE_TIMEOUT_MS)
+  const abort = () => controller.abort()
+  signal.addEventListener('abort', abort, { once: true })
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: 'application/json',
+        'user-agent': `dsh-liangtime/${CURRENT_VERSION}`,
+      },
+      signal: controller.signal,
+    })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    return await response.json()
+  } finally {
+    clearTimeout(timer)
+    signal.removeEventListener('abort', abort)
   }
 }
 
@@ -101,10 +169,23 @@ export function apply(ctx) {
     sourceUrl: DEFAULT_HOLIDAY_SOURCE,
     notices: [],
   }
+  let updateState = {
+    phase: 'idle',
+    currentVersion: CURRENT_VERSION,
+    latestVersion: null,
+    installedVersion: null,
+    channel: null,
+    error: null,
+    lastCheck: null,
+    available: false,
+    canInstall: false,
+  }
   let revision = 1
   let disposed = false
   let syncPromise = null
   let holidaySyncPromise = null
+  let updateCheckPromise = null
+  let updateInstallPromise = null
   let writeChain = Promise.resolve()
 
   const logWarning = (message, error) => {
@@ -132,7 +213,168 @@ export function apply(ctx) {
   const snapshot = () => ({
     ...buildSnapshot(settings, syncState, holidaySyncState, revision),
     instanceId,
+    update: { ...updateState },
   })
+
+  const setUpdateState = patch => {
+    updateState = { ...updateState, ...patch }
+    revision += 1
+  }
+
+  const updateTargetSupport = async () => {
+    const manager = ctx.get('pluginManager')
+    if (!manager || typeof manager.updateBundle !== 'function' || typeof manager.listBundles !== 'function') {
+      return { canInstall: false, reason: 'Plugin Manager is unavailable.' }
+    }
+    try {
+      const bundles = await manager.listBundles()
+      const installed = Array.isArray(bundles)
+        ? bundles.find(bundle => bundle?.name === PACKAGE_NAME)
+        : null
+      if (installed?.update === 'registry') return { canInstall: true, reason: null }
+      return {
+        canInstall: false,
+        reason: 'This copy was not installed from a registry; update it from Plugin Manager.',
+      }
+    } catch (error) {
+      return {
+        canInstall: false,
+        reason: `Could not inspect the installed copy: ${error instanceof Error ? error.message : String(error)}`,
+      }
+    }
+  }
+
+  const installUpdate = async () => {
+    if (updateInstallPromise !== null) return updateInstallPromise
+    updateInstallPromise = (async () => {
+      if (disposed) return
+      if (!updateState.canInstall || typeof updateState.latestVersion !== 'string') {
+        setUpdateState({ phase: 'error', error: 'No installable update is available.' })
+        return
+      }
+      const manager = ctx.get('pluginManager')
+      if (!manager || typeof manager.updateBundle !== 'function') {
+        setUpdateState({ phase: 'error', error: 'Plugin Manager is unavailable.' })
+        return
+      }
+      const version = updateState.latestVersion
+      const channel = UPDATE_CHANNELS.find(item => item.id === updateState.channel)
+      setUpdateState({ phase: 'installing', error: null })
+      let outcome
+      try {
+        outcome = await manager.updateBundle(PACKAGE_NAME, version, channel?.registry
+          ? { registry: channel.registry }
+          : {})
+      } catch (error) {
+        setUpdateState({
+          phase: 'error',
+          available: false,
+          canInstall: false,
+          error: error instanceof Error ? error.message : String(error),
+        })
+        return
+      }
+      const result = outcome?.result
+      const application = result?.application
+      if (application === 'failed' || application === 'cancelled') {
+        const detail = result?.error?.diagnostic ?? result?.error?.code ?? 'the installer refused the update'
+        setUpdateState({
+          phase: 'error',
+          available: false,
+          canInstall: false,
+          error: typeof detail === 'string' ? detail : JSON.stringify(detail),
+        })
+        return
+      }
+      setUpdateState({
+        phase: application === 'restart-required' ? 'restart-required' : 'installed',
+        installedVersion: version,
+        available: false,
+        canInstall: false,
+        error: null,
+      })
+    })().finally(() => {
+      updateInstallPromise = null
+    })
+    return updateInstallPromise
+  }
+
+  const checkForUpdate = async ({ autoInstall = false } = {}) => {
+    if (updateCheckPromise !== null) return updateCheckPromise
+    updateCheckPromise = (async () => {
+      if (disposed) return
+      setUpdateState({
+        phase: 'checking',
+        error: null,
+        lastCheck: new Date().toISOString(),
+        available: false,
+        canInstall: false,
+      })
+      const attempts = []
+      let found = null
+      for (const channel of UPDATE_CHANNELS) {
+        if (disposed) return
+        try {
+          const payload = await fetchJson(channel.url, lifetime.signal)
+          const version = typeof payload?.version === 'string'
+            ? payload.version
+            : payload?.['dist-tags']?.latest
+          if (typeof version !== 'string' || version.length === 0) throw new Error('the response did not name a version')
+          found = { channel, version }
+          break
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          attempts.push(`${channel.id}: ${message}`)
+        }
+      }
+      if (found === null) {
+        setUpdateState({
+          phase: 'error',
+          latestVersion: null,
+          channel: null,
+          available: false,
+          canInstall: false,
+          error: `All update channels failed (${attempts.join('; ')})`,
+        })
+        return
+      }
+      const newer = compareVersions(found.version, CURRENT_VERSION) > 0
+      if (!newer) {
+        setUpdateState({
+          phase: 'idle',
+          latestVersion: null,
+          channel: found.channel.id,
+          available: false,
+          canInstall: false,
+          error: null,
+          lastCheck: new Date().toISOString(),
+        })
+        return
+      }
+      const support = await updateTargetSupport()
+      setUpdateState({
+        phase: support.canInstall ? 'available' : 'blocked',
+        latestVersion: found.version,
+        channel: found.channel.id,
+        available: support.canInstall,
+        canInstall: support.canInstall,
+        error: support.canInstall ? null : support.reason,
+        lastCheck: new Date().toISOString(),
+      })
+      if (support.canInstall && autoInstall) await installUpdate()
+    })().catch(error => {
+      if (disposed) return
+      setUpdateState({
+        phase: 'error',
+        available: false,
+        canInstall: false,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }).finally(() => {
+      updateCheckPromise = null
+    })
+    return updateCheckPromise
+  }
 
   const load = async () => {
     await mkdir(dataDirectory, { recursive: true }).catch(error => {
@@ -331,6 +573,11 @@ export function apply(ctx) {
 
   ctx.effect(() => {
     void ready.then(() => {
+      if (disposed) return
+      const mode = settings.updateMode ?? 'notify'
+      if (mode !== 'manual') {
+        void checkForUpdate({ autoInstall: mode === 'silent' })
+      }
       if (!disposed) void syncAll()
     })
     return async () => {
@@ -391,5 +638,27 @@ export function apply(ctx) {
         return noStoreJson(snapshot())
       },
     }), 'dsh-liangtime: sync route')
+
+    scope.effect(() => scope.connection.fetch.register({
+      path: UPDATE_CHECK_PATH,
+      methods: ['POST'],
+      requestBody: 'buffered',
+      fetch: async () => {
+        await ready
+        await checkForUpdate({ autoInstall: false })
+        return noStoreJson(snapshot())
+      },
+    }), 'dsh-liangtime: update check route')
+
+    scope.effect(() => scope.connection.fetch.register({
+      path: UPDATE_INSTALL_PATH,
+      methods: ['POST'],
+      requestBody: 'buffered',
+      fetch: async () => {
+        await ready
+        await installUpdate()
+        return noStoreJson(snapshot())
+      },
+    }), 'dsh-liangtime: update install route')
   })
 }

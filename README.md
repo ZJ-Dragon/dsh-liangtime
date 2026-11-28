@@ -1,4 +1,4 @@
-# dsh-liangTime
+# dsh-liangTime（显示名：梁辰）
 
 在 DeepSeek Harness 的侧边栏用户名按钮上方或会话标题栏右侧显示当前是否处于 DeepSeek API 的高峰计价时段。
 
@@ -10,8 +10,9 @@
 - 颜色可选黑、白、绿、红、黄、蓝、紫、橙，也可通过系统调色盘自定义。
 - 选择黑色或白色时出现「跟随应用主题自动切换」开关，默认开启。
 - 显示位置可选：侧边栏用户名按钮上方，或会话标题栏右侧。
-- 设置页「梁时」提供 24 小时时间仪表盘、官方同步状态、手动峰谷时段、生效日期和今日临时覆盖。
+- 设置页「梁辰」提供 24 小时时间仪表盘、官方同步状态、手动峰谷时段、生效日期和今日临时覆盖。
 - 侧边栏宽度同步：启动时读取一次，此后每 30 分钟重新读取并调整文字显示宽度；可在设置中关闭。
+- 更新档位：静默自动更新、红点提示后由用户安装、纯手动更新；启动时按 npm → npmmirror → jsDelivr 顺序尝试，只有自动更新（提示）会在图标左上角显示红点。自动安装只适用于从 npm registry 安装的副本；本地链接副本会提示改由插件管理器更新。
 - 侧边栏展开动画使用预排好的固定行，宽度和高度同步过渡；文字不会在动画过程中重新换行。
 - 自适应换行：估算换行后的末行长度，若只剩 1–2 个字符，则在前一行提前 2 个字符换行；若换行落在倒计时的时间部分，则提前到「还有」后换行，让时间独立一行；可在设置中关闭。
 - 自动同步中国法定节假日：通过中国政府网搜索接口定位当前年份和最新年份的放假通知，抓取通知页并解析假期日期；法定节假日全天按低峰处理。
@@ -34,7 +35,7 @@
 
 `dsh-liangTime` shows whether DeepSeek API pricing is currently in its peak window, either above the sidebar account button or on the right of the session header. The peak state uses an upward SVG trend arrow and the off-peak state uses a downward one; both are transparent and inherit the configured color. Hover for about 0.5s (to avoid accidental triggers) or focus the badge to expand a countdown to the next peak/off-peak switch, e.g. "2h 15m until LiangWenfeng time". The width follows the text, and the sidebar wraps instead of truncating.
 
-- Configure the position, texts, colors, and 24-hour schedule in **Settings > LiangTime**.
+- Configure the position, texts, colors, and 24-hour schedule in **Settings > 梁辰**.
 - Peak/off-peak times sync from the official DeepSeek API pricing page at every plugin startup; a failed sync is reported in gray on that page and can be retried manually.
 - Chinese public holidays sync automatically from the gov.cn holiday notices. A manual calendar is available for failed syncs and non-China users; in auto mode manual dates are additive, in manual mode only manual dates apply.
 - Import separate custom SVGs for peak and off-peak from Settings. The confirmation dialog lists the rules before the system file picker opens. Custom SVGs keep their own colors; badge text still follows the color setting.
